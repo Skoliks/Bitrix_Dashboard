@@ -7,6 +7,7 @@ export type ErrorCode =
   | 'UPSTREAM_TIMEOUT'
   | 'UPSTREAM_UNAVAILABLE'
   | 'DATA_TRUNCATED'
+  | 'INVALID_FILTERS'
   | 'VALIDATION_ERROR'
   | 'UNKNOWN'
 

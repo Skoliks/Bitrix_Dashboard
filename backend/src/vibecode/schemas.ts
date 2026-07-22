@@ -204,7 +204,8 @@ export const dealSearchRequestBodySchema = z.object({
     categoryId: z.number().optional(),
     stageSemanticId: z.string().optional(),
     currency: z.string().optional(),
-    createdAt: dateFilterSchema.optional()
+    createdAt: dateFilterSchema.optional(),
+    closedAt: dateFilterSchema.optional()
   }).strict().optional(),
   select: z.array(z.string()).optional(),
   order: z.record(z.string(), z.enum(['asc', 'desc'])).optional(),

@@ -20,6 +20,7 @@ const defaultMessages: Record<ErrorCode, string> = {
   UPSTREAM_TIMEOUT: 'Upstream request timed out.',
   UPSTREAM_UNAVAILABLE: 'Upstream service is unavailable.',
   DATA_TRUNCATED: 'Data was truncated by upstream limits.',
+  INVALID_FILTERS: 'Dashboard filters are invalid.',
   VALIDATION_ERROR: 'Request or configuration validation failed.',
   UNKNOWN: 'Unexpected backend error.'
 }

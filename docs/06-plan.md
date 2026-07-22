@@ -262,13 +262,13 @@
 - Изменить: `backend/src/types/api.ts`
 
 **Работы:**
-- [ ] Реализовать presets: `last7`, `last30`, `last90`, `currentMonth`, `previousMonth`, `custom`.
-- [ ] Хранить входные `dateFrom`/`dateTo` как календарные даты `YYYY-MM-DD`.
-- [ ] Рассчитывать начало дня включительно и конец дня включительно в timezone портала.
-- [ ] Запретить прямое использование `new Date('YYYY-MM-DD')` для бизнес-границ.
-- [ ] Валидировать `categoryId`, `dateFrom`, `dateTo`, `currency=all|<code>`.
-- [ ] Построить запросы для KPI: open now без `createdAt`, open created by `createdAt`, won by `closedAt`, funnel by `createdAt`, trend by `createdAt`/`closedAt`.
-- [ ] Построить отдельный query для recent deals: выбранная воронка, период по `createdAt`, валюта, `createdAt desc`, limit 15.
+- [x] Реализовать presets: `last7`, `last30`, `last90`, `currentMonth`, `previousMonth`, `custom`.
+- [x] Хранить входные `dateFrom`/`dateTo` как календарные даты `YYYY-MM-DD`.
+- [x] Рассчитывать начало дня включительно и конец дня включительно в timezone портала.
+- [x] Запретить прямое использование `new Date('YYYY-MM-DD')` для бизнес-границ.
+- [x] Валидировать `categoryId`, `dateFrom`, `dateTo`, `currency=all|<code>`.
+- [x] Построить запросы для KPI: open now без `createdAt`, open created by `createdAt`, won by `closedAt`, funnel by `createdAt`, trend by `createdAt`/`closedAt`.
+- [x] Построить отдельный query для recent deals: выбранная воронка, период по `createdAt`, валюта, `createdAt desc`, limit 15.
 
 **Критерии готовности:**
 - Невалидные фильтры возвращают `400 INVALID_FILTERS`.
@@ -286,6 +286,12 @@
 - Ошибка timezone даст неправильные KPI на границах дней.
 - API может иначе трактовать включительность `dateTo`.
 - В будущем custom range может стать слишком широким и часто вызывать truncation.
+
+**Статус Phase 4 от 2026-07-22:**
+- Сделано: реализованы timezone-aware date adapter для presets `last7`, `last30`, `last90`, `currentMonth`, `previousMonth`, `custom`; добавлена validation входных dashboard filters с `INVALID_FILTERS`, включая reject пустого/blank `categoryId` и невозможных календарных дат; построены query payloads для open now, open created, won, funnel, ограниченных trend created/won и separate recent deals query; VibeCode request schemas расширены `closedAt` date filter.
+- Изменены файлы: `backend/src/services/dateAdapter.ts`; `backend/src/services/filterValidation.ts`; `backend/src/services/dealsQueryService.ts`; `backend/src/types/api.ts`; `backend/src/http/errors.ts`; `backend/src/vibecode/errors.ts`; `backend/src/vibecode/schemas.ts`; `backend/tests/services/dateAdapter.test.ts`; `backend/tests/services/filterValidation.test.ts`; `backend/tests/services/dealsQueryService.test.ts`; `docs/06-plan.md`.
+- Пройдены тесты: `cd backend; pnpm run test` (17 files, 52 tests); `cd backend; pnpm run typecheck`; `cd backend; pnpm run lint`; `cd backend; pnpm run build`.
+- Остались риски: VibeCode inclusivity for `closedAt`/`createdAt` boundaries still needs production-like smoke; very wide custom ranges may need additional UX cap in later phases; timezone conversion relies on runtime `Intl` timezone data.
 
 ## Phase 5. Backend Aggregation And Dashboard API
 

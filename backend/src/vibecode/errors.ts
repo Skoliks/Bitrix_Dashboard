@@ -61,6 +61,7 @@ const messageForCode = (code: ErrorCode): string => {
     UPSTREAM_TIMEOUT: 'VibeCode request timed out.',
     UPSTREAM_UNAVAILABLE: 'VibeCode service is unavailable.',
     DATA_TRUNCATED: 'VibeCode data was truncated.',
+    INVALID_FILTERS: 'VibeCode filters are invalid.',
     VALIDATION_ERROR: 'VibeCode request validation failed.',
     UNKNOWN: 'VibeCode returned an unknown error.'
   }
