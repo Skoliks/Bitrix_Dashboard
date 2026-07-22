@@ -21,6 +21,6 @@ export const applyCorsHeaders = (headers: Headers, origin: string | null, allowe
   headers.set('access-control-allow-origin', origin)
   headers.set('vary', 'Origin')
   headers.set('access-control-allow-methods', 'GET,OPTIONS')
-  headers.set('access-control-allow-headers', 'Content-Type,Authorization,X-Bitrix24-Domain,X-Bitrix24-User-Id')
+  headers.set('access-control-allow-headers', 'Content-Type,Authorization,X-Bitrix24-Domain,X-Bitrix24-User-Id,X-VibeCode-Session-Token,X-VibeCode-Portal-Domain,X-VibeCode-User-Id,X-VibeCode-Session-Issued-At,X-VibeCode-Session-Signature')
   headers.set('access-control-max-age', '600')
 }

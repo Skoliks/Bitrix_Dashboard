@@ -12,6 +12,7 @@ interface ReferenceDataServiceConfig {
 
 export interface BootstrapContext {
   portalId: string
+  userId?: string
   sessionToken?: string
 }
 
@@ -44,8 +45,9 @@ export const createReferenceDataService = (config: ReferenceDataServiceConfig): 
   return {
     async getBootstrap(context): Promise<BootstrapResponse> {
       const requestContext = context.sessionToken ? { sessionToken: context.sessionToken } : {}
+      const scope = cacheScope(context)
       const categories = await cached(
-        `categories:${context.portalId}`,
+        `categories:${scope}`,
         ttl.categories,
         async () => sortCategories(await config.client.getDealCategories(requestContext))
       )
@@ -59,12 +61,12 @@ export const createReferenceDataService = (config: ReferenceDataServiceConfig): 
 
       const [stages, currencies, usersResult] = await Promise.all([
         cached(
-          `stages:${context.portalId}:${selectedCategoryId}`,
+          `stages:${scope}:${selectedCategoryId}`,
           ttl.stages,
           async () => config.client.getStatuses({ ...requestContext, entityId: stageEntityId })
         ),
         cached(
-          `currencies:${context.portalId}`,
+          `currencies:${scope}`,
           ttl.currencies,
           async () => config.client.getCurrencies(requestContext)
         ),
@@ -96,7 +98,7 @@ const loadUsers = async (
   context: BootstrapContext,
   requestContext: { sessionToken?: string }
 ): Promise<{ users: User[]; warning?: 'USERS_UNAVAILABLE' }> => {
-  const key = `users:${context.portalId}`
+  const key = `users:${cacheScope(context)}`
   const hit = cache.get<User[]>(key)
   if (hit !== undefined) {
     return { users: hit }
@@ -114,6 +116,9 @@ const loadUsers = async (
     return { users: [], warning: 'USERS_UNAVAILABLE' }
   }
 }
+
+const cacheScope = (context: BootstrapContext): string =>
+  context.userId ? `${context.portalId}:user:${context.userId}` : context.portalId
 
 const sortCategories = (categories: DealCategory[]): DealCategory[] =>
   [...categories].sort((left, right) => left.sort - right.sort || left.id - right.id)

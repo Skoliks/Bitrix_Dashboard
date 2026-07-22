@@ -10,6 +10,7 @@ const validEnv = {
   BITRIX24_ALLOWED_ORIGINS: 'https://portal.bitrix24.com',
   APP_PUBLIC_URL: 'https://dashboard.example.com',
   NODE_ENV: 'test',
+  SESSION_CONTEXT_MODE: 'provisional-headers',
   LOG_LEVEL: 'silent',
   PORT: '0'
 }
@@ -52,6 +53,32 @@ describe('bootstrap route', () => {
     })
     expect(body).not.toContain('vibe_session_secret')
     expect(body).not.toContain('vibe_app_')
+  })
+
+  it('rejects forged provisional headers when signed mode is enabled', async () => {
+    const referenceDataService = {
+      getBootstrap: vi.fn(async () => bootstrap)
+    }
+    const app = createApp({
+      ...validEnv,
+      SESSION_CONTEXT_MODE: 'signed-headers',
+      SESSION_CONTEXT_HMAC_SECRET: 'server-secret'
+    }, { referenceDataService })
+
+    const response = await app.fetch(new Request('http://localhost/api/bootstrap', {
+      headers: {
+        origin: 'https://portal.bitrix24.com',
+        authorization: 'Bearer forged_session',
+        'x-bitrix24-domain': 'evil.bitrix24.com',
+        'x-bitrix24-user-id': '99'
+      }
+    }))
+
+    expect(response.status).toBe(401)
+    expect(await response.json()).toMatchObject({
+      error: { code: 'AUTH_REQUIRED' }
+    })
+    expect(referenceDataService.getBootstrap).not.toHaveBeenCalled()
   })
 
   it('returns blocking validation error when no categories are available', async () => {

@@ -64,7 +64,7 @@ export const createApp = (env: Record<string, string | undefined> = process.env,
             throw getConfigValidationError(config)
           }
 
-          return await handleBootstrap(request, referenceDataService, headers)
+          return await handleBootstrap(request, referenceDataService, headers, config.sessionContext)
         }
 
         throw new AppError('VALIDATION_ERROR', 'Route not found.', 404)
@@ -87,6 +87,7 @@ const normalizePublicConfig = (config: ConfigResult): PublicConfig => ({
   allowedOrigins: config.publicConfig.allowedOrigins ?? [],
   appPublicUrl: config.publicConfig.appPublicUrl ?? 'http://localhost',
   nodeEnv: config.publicConfig.nodeEnv ?? 'development',
+  sessionContextMode: config.publicConfig.sessionContextMode ?? 'provisional-headers',
   logLevel: config.publicConfig.logLevel ?? 'info',
   port: config.publicConfig.port ?? 3000
 })

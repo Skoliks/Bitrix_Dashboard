@@ -21,6 +21,7 @@ describe('loadConfig', () => {
       allowedOrigins: ['https://portal.bitrix24.com', 'https://portal.bitrix24.ru'],
       appPublicUrl: 'https://dashboard.example.com',
       nodeEnv: 'test',
+      sessionContextMode: 'provisional-headers',
       logLevel: 'debug',
       port: 4010
     })
@@ -37,5 +38,17 @@ describe('loadConfig', () => {
     expect(config.isValid).toBe(false)
     expect(getConfigValidationError(config).code).toBe('VALIDATION_ERROR')
     expect(JSON.stringify(config)).not.toContain('vibe_app_should_not_leak')
+  })
+
+  it('requires HMAC secret for signed session mode', () => {
+    const config = loadConfig({
+      ...validEnv,
+      NODE_ENV: 'production',
+      SESSION_CONTEXT_MODE: 'signed-headers',
+      SESSION_CONTEXT_HMAC_SECRET: ''
+    })
+
+    expect(config.isValid).toBe(false)
+    expect(getConfigValidationError(config).code).toBe('VALIDATION_ERROR')
   })
 })

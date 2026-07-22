@@ -75,6 +75,40 @@ describe('reference data service', () => {
     expect(client.getStatuses).toHaveBeenCalledTimes(1)
   })
 
+  it('isolates reference cache by user when user context is available', async () => {
+    const client = createClient({
+      getDealCategories: vi
+        .fn()
+        .mockResolvedValueOnce([{ id: 0, name: 'Main for user 1', sort: 10, isLocked: false }])
+        .mockResolvedValueOnce([{ id: 0, name: 'Main for user 2', sort: 10, isLocked: false }]),
+      getUsers: vi
+        .fn()
+        .mockResolvedValueOnce([{ id: 1, active: true, displayName: 'User One', timeZone: 'UTC' }])
+        .mockResolvedValueOnce([{ id: 2, active: true, displayName: 'User Two', timeZone: 'UTC' }])
+    })
+    const service = createReferenceDataService({
+      client,
+      cache: new MemoryCache(() => Date.UTC(2026, 6, 22)),
+      now: () => new Date('2026-07-22T05:00:00.000Z')
+    })
+
+    const first = await service.getBootstrap({
+      portalId: 'portal-a',
+      userId: '1',
+      sessionToken: 'session-1'
+    })
+    const second = await service.getBootstrap({
+      portalId: 'portal-a',
+      userId: '2',
+      sessionToken: 'session-2'
+    })
+
+    expect(first.categories[0]?.name).toBe('Main for user 1')
+    expect(second.categories[0]?.name).toBe('Main for user 2')
+    expect(client.getDealCategories).toHaveBeenCalledTimes(2)
+    expect(client.getUsers).toHaveBeenCalledTimes(2)
+  })
+
   it('uses first available category and category-specific stages when main category is absent', async () => {
     const client = createClient({
       getDealCategories: vi.fn(async () => [{ id: 2, name: 'Only', sort: 30, isLocked: false }])

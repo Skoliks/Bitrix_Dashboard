@@ -18,6 +18,7 @@
 - MVP read-only: приложение не создаёт, не изменяет и не удаляет сделки CRM.
 - Frontend не содержит `vibe_app_...`, `vibe_api_...` или пользовательский session token.
 - Все CRM-данные идут через `backend/` и VibeCode API в пользовательском контексте текущего пользователя.
+- Пользовательский session context нельзя считать production boundary, пока backend не проверяет источник/подпись gateway session handoff; неподписанные client-supplied `Authorization`, `X-Bitrix24-Domain`, `X-Bitrix24-User-Id` допустимы только как временный dev/provisional механизм и должны быть отклонены production negative tests.
 - Сервисный ключ `vibe_api_...` разрешён только для разработки, диагностики и smoke-тестов вне пользовательского MVP.
 - В MVP нет режима «Все воронки», фильтра по ответственному, фильтра по отделу, собственной ролевой модели, истории переходов стадий, автоконвертации валют и write-операций CRM.
 - Минимальные production scopes зафиксировать как `crm,user_brief`, если research не докажет необходимость другого набора.
@@ -38,6 +39,7 @@
 - `docs/03-research-brief.md` - вопросы, которые нужно закрыть до реализации интеграционного слоя.
 - `docs/05-ui-brief.md` - UX, структура экрана, состояния, визуальный стиль, адаптивность и UI acceptance checklist.
 - `docs/06-plan.md` - этот implementation plan.
+- `docs/07-session-boundary-report.md` - Phase 4.5 session boundary decision, signed gateway handoff contract и residual real iframe capture risk.
 
 ## Repository Roles
 
@@ -293,9 +295,56 @@
 - Пройдены тесты: `cd backend; pnpm run test` (17 files, 52 tests); `cd backend; pnpm run typecheck`; `cd backend; pnpm run lint`; `cd backend; pnpm run build`.
 - Остались риски: VibeCode inclusivity for `closedAt`/`createdAt` boundaries still needs production-like smoke; very wide custom ranges may need additional UX cap in later phases; timezone conversion relies on runtime `Intl` timezone data.
 
+## Phase 4.5. Backend Session Boundary Hardening Gate
+
+**Цель:** закрыть security findings независимого аудита Phase 0-4 до реализации `GET /api/dashboard`, чтобы Phase 5 не строилась поверх доверия к неподписанным клиентским заголовкам.
+
+**Файлы:**
+- Изменить: `backend/src/session/context.ts`
+- Изменить: `backend/src/http/routes/bootstrap.ts`
+- Изменить: `backend/src/services/referenceDataService.ts`
+- Изменить: `backend/tests/http/sessionContext.test.ts`
+- Изменить: `backend/tests/http/bootstrap.test.ts`
+- Изменить: `backend/tests/services/referenceDataService.test.ts`
+- Создать: `docs/07-session-boundary-report.md`
+- Изменить: `docs/07-research-results.md`, если real iframe/gateway capture уточняет контракт
+
+**Работы:**
+- [x] Провести local feasibility check для real Bitrix24 iframe/gateway capture; прямой capture недоступен из локального контекста, поэтому зафиксировать signed gateway handoff contract и residual external verification risk.
+- [x] Описать, какие inbound headers считаются trusted, какие являются только dev/provisional, и где backend получает portal/user/session в production.
+- [x] Заменить production session parsing так, чтобы неподписанные client-supplied `Authorization`, `X-Bitrix24-Domain`, `X-Bitrix24-User-Id` не принимались как достаточная аутентификация.
+- [x] Добавить negative tests на forged headers: произвольный bearer token, подмена portal domain, подмена user id, отсутствие/битая подпись или handoff marker.
+- [x] Уточнить cache key для справочников: добавить user/session dimension для user-specific данных, когда `userId` доступен.
+- [x] Проверить, что `GET /api/bootstrap` не раскрывает данные другого пользователя при смене session context внутри одного portal.
+- [x] Обновить документацию с итоговым решением и residual risks.
+
+**Критерии готовности:**
+- Backend принимает production session context только из подтверждённого gateway/session handoff.
+- Forged client headers не дают успешный `/api/bootstrap`.
+- Cache isolation соответствует подтверждённому контракту VibeCode или включает user/session dimension там, где данные могут зависеть от прав пользователя.
+- Все временные header-based тесты явно помечены как dev/provisional либо заменены production negative tests.
+- Critical/High finding про session boundary и Important finding про reference cache isolation закрыты или перенесены в явно утверждённый residual risk.
+
+**Тесты:**
+- Unit/HTTP: forged `Authorization` без valid handoff возвращает `AUTH_REQUIRED` или `SESSION_EXPIRED`.
+- Unit/HTTP: forged `X-Bitrix24-Domain` не меняет portal namespace без valid handoff.
+- Unit/HTTP: forged `X-Bitrix24-User-Id` не меняет user context без valid handoff.
+- Unit/service: reference cache не возвращает user-specific data между разными users одного portal.
+- Full backend gate: `cd backend; pnpm run test`; `cd backend; pnpm run typecheck`; `cd backend; pnpm run lint`; `cd backend; pnpm run build`.
+
+**Риски:**
+- Точный handoff contract может зависеть от реального Bitrix24 placement/runtime и не быть воспроизводимым через direct API-key diagnostics.
+- Если VibeCode не отдаёт проверяемую подпись/маркер, понадобится отдельное архитектурное решение до Phase 5.
+
+**Статус Phase 4.5 от 2026-07-23:**
+- Сделано: добавлен `SESSION_CONTEXT_MODE` (`signed-headers`/`provisional-headers`) и обязательный `SESSION_CONTEXT_HMAC_SECRET` для signed mode; production session parser принимает только HMAC-signed gateway handoff headers; legacy `Authorization` + `X-Bitrix24-*` headers оставлены только для provisional dev/test mode; `/api/bootstrap` передает `userId` в reference service; reference cache изолируется по `portalId:user:userId`, когда user context доступен; добавлены negative tests на forged headers и user-specific cache isolation; создан `docs/07-session-boundary-report.md`.
+- Изменены файлы: `backend/.env.example`; `backend/src/config.ts`; `backend/src/http/app.ts`; `backend/src/http/routes/bootstrap.ts`; `backend/src/http/securityHeaders.ts`; `backend/src/services/referenceDataService.ts`; `backend/src/session/context.ts`; `backend/tests/http/bootstrap.test.ts`; `backend/tests/http/config.test.ts`; `backend/tests/http/sessionContext.test.ts`; `backend/tests/services/referenceDataService.test.ts`; `docs/06-plan.md`; `docs/07-session-boundary-report.md`.
+- Пройдены тесты: `cd backend; pnpm vitest run tests/http/sessionContext.test.ts tests/http/bootstrap.test.ts tests/services/referenceDataService.test.ts tests/http/config.test.ts` (4 files, 17 tests); `cd backend; pnpm run test` (17 files, 57 tests); `cd backend; pnpm run typecheck`; `cd backend; pnpm run lint`; `cd backend; pnpm run build`.
+- Остались риски: real Bitrix24 iframe/gateway capture не выполнен локально и должен подтвердить, что runtime может выпускать `signed-headers` или эквивалентный проверяемый handoff; HMAC signed headers защищают от forged client headers только при условии, что `SESSION_CONTEXT_HMAC_SECRET` остается server-only и gateway/proxy не пропускает клиенту возможность подписывать handoff самостоятельно.
+
 ## Phase 5. Backend Aggregation And Dashboard API
 
-**Цель:** реализовать `GET /api/dashboard`, KPI, воронку по стадиям, тренд, таблицу последних сделок и warnings.
+**Цель:** после закрытия Phase 4.5 реализовать `GET /api/dashboard`, KPI, воронку по стадиям, тренд, таблицу последних сделок и warnings.
 
 **Файлы:**
 - Создать: `backend/src/services/aggregationService.ts`
@@ -307,6 +356,7 @@
 - Изменить: `docs/07-api-contracts.md`, если финальные DTO уточняются
 
 **Работы:**
+- [ ] Перед началом убедиться, что Phase 4.5 закрыта или пользователь явно утвердил documented residual risk.
 - [ ] Рассчитать KPI: «Открыто сейчас», «Открыто из созданных за период», «Выиграно за период», «Сумма выигранных за период», «Средний чек».
 - [ ] Для денег возвращать суммы по валютам; при `currency=all` не объединять валюты.
 - [ ] Сделки без суммы считать с `amount = 0`.

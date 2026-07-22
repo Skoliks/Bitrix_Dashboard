@@ -2,11 +2,13 @@ import { AppError } from './http/errors.js'
 
 export type RuntimeMode = 'development' | 'test' | 'production'
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent'
+export type SessionContextMode = 'provisional-headers' | 'signed-headers'
 
 export interface PublicConfig {
   allowedOrigins: string[]
   appPublicUrl: string
   nodeEnv: RuntimeMode
+  sessionContextMode: SessionContextMode
   logLevel: LogLevel
   port: number
 }
@@ -14,6 +16,10 @@ export interface PublicConfig {
 export interface AppConfig {
   vibeCodeAppKey: string
   vibeCodeApiBaseUrl: URL
+  sessionContext: {
+    mode: SessionContextMode
+    hmacSecret?: string
+  }
   publicConfig: PublicConfig
 }
 
@@ -25,6 +31,7 @@ type Env = Record<string, string | undefined>
 
 const runtimeModes = new Set<RuntimeMode>(['development', 'test', 'production'])
 const logLevels = new Set<LogLevel>(['debug', 'info', 'warn', 'error', 'silent'])
+const sessionContextModes = new Set<SessionContextMode>(['provisional-headers', 'signed-headers'])
 
 export const loadConfig = (env: Env = process.env): ConfigResult => {
   const errors: string[] = []
@@ -33,12 +40,15 @@ export const loadConfig = (env: Env = process.env): ConfigResult => {
   const appPublicUrl = readUrl(env, 'APP_PUBLIC_URL', errors)
   const allowedOrigins = readOrigins(env, errors)
   const nodeEnv = readEnum(env.NODE_ENV, runtimeModes, 'development', 'NODE_ENV', errors)
+  const sessionContextMode = readSessionContextMode(env, nodeEnv, errors)
+  const sessionContextHmacSecret = readSessionContextHmacSecret(env, sessionContextMode, errors)
   const logLevel = readEnum(env.LOG_LEVEL, logLevels, 'info', 'LOG_LEVEL', errors)
   const port = readPort(env.PORT, errors)
 
   const publicConfig: Partial<PublicConfig> = {
     allowedOrigins,
     nodeEnv,
+    sessionContextMode,
     logLevel,
     port
   }
@@ -56,10 +66,15 @@ export const loadConfig = (env: Env = process.env): ConfigResult => {
     errors: [],
     vibeCodeAppKey: appKey,
     vibeCodeApiBaseUrl: apiBaseUrl,
+    sessionContext: {
+      mode: sessionContextMode,
+      ...(sessionContextHmacSecret ? { hmacSecret: sessionContextHmacSecret } : {})
+    },
     publicConfig: {
       allowedOrigins,
       appPublicUrl: appPublicUrl.origin,
       nodeEnv,
+      sessionContextMode,
       logLevel,
       port
     }
@@ -149,6 +164,29 @@ const readEnum = <T extends string>(
 
   errors.push(`${key} must be one of ${[...allowed].join(', ')}`)
   return fallback
+}
+
+const readSessionContextMode = (
+  env: Env,
+  nodeEnv: RuntimeMode,
+  errors: string[]
+): SessionContextMode => {
+  const fallback = nodeEnv === 'production' ? 'signed-headers' : 'provisional-headers'
+  return readEnum(env.SESSION_CONTEXT_MODE, sessionContextModes, fallback, 'SESSION_CONTEXT_MODE', errors)
+}
+
+const readSessionContextHmacSecret = (
+  env: Env,
+  mode: SessionContextMode,
+  errors: string[]
+): string | undefined => {
+  const value = env.SESSION_CONTEXT_HMAC_SECRET?.trim()
+  if (mode === 'signed-headers' && !value) {
+    errors.push('SESSION_CONTEXT_HMAC_SECRET is required when SESSION_CONTEXT_MODE=signed-headers')
+    return undefined
+  }
+
+  return value || undefined
 }
 
 const readPort = (value: string | undefined, errors: string[]): number => {
