@@ -172,12 +172,12 @@
 - Изменить: `docs/07-api-contracts.md`, если mapper фиксирует новые подтверждённые детали
 
 **Работы:**
-- [ ] Описать внешние Zod-схемы для `/v1/me`, `/v1/guide`, `/v1/deals`, `/v1/deals/search`, `/v1/deals/aggregate`, `/v1/deal-categories`, `/v1/statuses`, `/v1/users`, `/v1/currencies`.
-- [ ] Описать внутренние модели `Deal`, `DealCategory`, `Stage`, `User`, `Currency`, `VibeCodeMeta`.
-- [ ] Реализовать маппинг внешних полей в стабильные внутренние поля `id`, `title`, `amount`, `currency`, `categoryId`, `stageId`, `stageSemanticId`, `assignedById`, `createdAt`, `updatedAt`, `closedAt`.
-- [ ] Нормализовать ошибки VibeCode API во внутренний enum backend.
-- [ ] Добавить retry policy только для `429`, `502`, `503`, `504` и timeout; не retry для `400`, `401`, `403`.
-- [ ] Запретить backend проксировать произвольный VibeCode endpoint из query/body.
+- [x] Описать внешние Zod-схемы для `/v1/me`, `/v1/guide`, `/v1/deals`, `/v1/deals/search`, `/v1/deals/aggregate`, `/v1/deal-categories`, `/v1/statuses`, `/v1/users`, `/v1/currencies`.
+- [x] Описать внутренние модели `Deal`, `DealCategory`, `Stage`, `User`, `Currency`, `VibeCodeMeta`.
+- [x] Реализовать маппинг внешних полей в стабильные внутренние поля `id`, `title`, `amount`, `currency`, `categoryId`, `stageId`, `stageSemanticId`, `assignedById`, `createdAt`, `updatedAt`, `closedAt`.
+- [x] Нормализовать ошибки VibeCode API во внутренний enum backend.
+- [x] Добавить retry policy только для `429`, `502`, `503`, `504` и timeout; не retry для `400`, `401`, `403`.
+- [x] Запретить backend проксировать произвольный VibeCode endpoint из query/body.
 
 **Критерии готовности:**
 - Все redacted fixtures из `docs/fixtures/vibecode/` проходят Zod-валидацию.
@@ -195,6 +195,12 @@
 - Fixtures могут быть неполными и не покрыть редкие nullable/legacy поля.
 - Ошибки upstream могут иметь нестабильный формат.
 - Retry без лимитов может усилить rate limit, поэтому нужны малое число попыток и timeout.
+
+**Статус Phase 2 от 2026-07-22:**
+- Сделано: добавлена dependency `zod`; реализованы внешние VibeCode schemas, внутренние domain models, mappers, error normalization и закрытый VibeCode client с фиксированными методами для разрешенных endpoints; client добавляет `X-Api-Key` и optional server-side `Authorization`, применяет timeout и retry только для retryable upstream failures; покрыты error fixtures, invalid success schema normalization, timeout retry и typed request bodies.
+- Изменены файлы: `backend/package.json`; `backend/pnpm-lock.yaml`; `backend/src/domain/models.ts`; `backend/src/vibecode/client.ts`; `backend/src/vibecode/schemas.ts`; `backend/src/vibecode/mappers.ts`; `backend/src/vibecode/errors.ts`; `backend/tests/vibecode/*.test.ts`; `docs/06-plan.md`.
+- Пройдены тесты: `cd backend; pnpm run test` (11 files, 27 tests); `cd backend; pnpm run typecheck`; `cd backend; pnpm run lint`; `cd backend; pnpm run build`.
+- Остались риски: fixtures остаются ограниченной выборкой и не покрывают все nullable/legacy варианты; exact gateway session transport все еще ждет real iframe capture из Phase 0 follow-up prerequisites; timeout/retry policy покрыта unit behavior, но реальные latency/rate-limit параметры нужно проверить на production-like VibeCode calls.
 
 ## Phase 3. Backend Reference Data And Bootstrap API
 
