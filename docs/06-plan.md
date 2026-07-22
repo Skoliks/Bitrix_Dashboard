@@ -152,10 +152,10 @@
 - Ошибка в session/context может случайно пробросить session token во frontend.
 
 **Статус Phase 1 от 2026-07-22:**
-- Сделано: создан отдельный backend scaffold на встроенном `node:http` без production dependencies; добавлены TypeScript/Vitest/ESLint scripts; реализованы env validation, `/health`, `/ready`, централизованные ошибки, security headers, CORS allowlist, session context без публичной отдачи token, graceful shutdown и redaction logger.
-- Изменены файлы: `.gitignore`; `backend/package.json`; `backend/pnpm-lock.yaml`; `backend/tsconfig.json`; `backend/vitest.config.ts`; `backend/eslint.config.js`; `backend/.env.example`; `backend/src/index.ts`; `backend/src/config.ts`; `backend/src/http/app.ts`; `backend/src/http/errors.ts`; `backend/src/http/securityHeaders.ts`; `backend/src/logging/logger.ts`; `backend/src/session/context.ts`; `backend/src/types/api.ts`; `backend/tests/http/*.test.ts`; `docs/06-plan.md`.
-- Пройдены тесты: `cd backend; pnpm run typecheck`; `cd backend; pnpm run lint`; `cd backend; pnpm run test`; `cd backend; pnpm run build`.
-- Остались риски: `session/context` реализован как минимальная header-based заготовка и должен быть свернут/уточнен после real iframe/gateway capture из Phase 0 follow-up prerequisites; CORS/CSP origins требуют проверки в реальном Bitrix24 iframe; Black Hole runtime compatibility подтверждена только выбором dependency-free Node HTTP runtime, без реального deploy smoke.
+- Сделано: создан отдельный backend scaffold на встроенном `node:http` без production dependencies; добавлены TypeScript/Vitest/ESLint scripts; реализованы env validation, `/health`, `/ready`, централизованные ошибки, iframe-safe security headers без `X-Frame-Options`, CORS allowlist, session context без публичной отдачи token, graceful shutdown, expanded redaction logger и тестируемый Node request adapter без premature body forwarding.
+- Изменены файлы: `.gitignore`; `backend/package.json`; `backend/pnpm-lock.yaml`; `backend/tsconfig.json`; `backend/vitest.config.ts`; `backend/eslint.config.js`; `backend/.env.example`; `backend/src/index.ts`; `backend/src/config.ts`; `backend/src/http/app.ts`; `backend/src/http/errors.ts`; `backend/src/http/securityHeaders.ts`; `backend/src/http/nodeRequest.ts`; `backend/src/logging/logger.ts`; `backend/src/session/context.ts`; `backend/src/types/api.ts`; `backend/tests/http/*.test.ts`; `docs/06-plan.md`.
+- Пройдены тесты: `cd backend; pnpm run test` (7 files, 12 tests); `cd backend; pnpm run typecheck`; `cd backend; pnpm run lint`; `cd backend; pnpm run build`.
+- Остались риски: `session/context` остается минимальной header-based заготовкой до real iframe/gateway capture из Phase 0 follow-up prerequisites; CORS/CSP origins требуют проверки в реальном Bitrix24 iframe; Black Hole runtime compatibility подтверждена только выбором dependency-free Node HTTP runtime, без реального deploy smoke.
 
 ## Phase 2. Backend VibeCode Client, Schemas And Mappers
 

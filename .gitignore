@@ -1,2 +1,8 @@
 b24-ai-starter/
 templates-dashboard-vue/
+backend/dist/
+backend/node_modules/
+backend/.env
+backend/.env.*
+!backend/.env.example
+backend/*.log
