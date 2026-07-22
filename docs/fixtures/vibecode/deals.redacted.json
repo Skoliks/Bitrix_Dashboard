@@ -1,0 +1,43 @@
+{
+  "success": true,
+  "data": [
+    {
+      "id": 2,
+      "title": "[REDACTED_DEAL_TITLE]",
+      "amount": 0,
+      "currency": "RUB",
+      "categoryId": 0,
+      "stageId": "LOSE",
+      "previousStageId": "NEW",
+      "stageSemanticId": "F",
+      "assignedById": 1,
+      "createdAt": "2026-07-17T14:16:18.000Z",
+      "updatedAt": "2026-07-19T11:49:03.000Z",
+      "closedAt": "2026-07-19T00:00:00.000Z",
+      "begindate": "2026-07-17T00:00:00.000Z",
+      "closed": true,
+      "entityTypeId": 2
+    },
+    {
+      "id": 4,
+      "title": "[REDACTED_DEAL_TITLE]",
+      "amount": 0,
+      "currency": "RUB",
+      "categoryId": 0,
+      "stageId": "PREPAYMENT_INVOICE",
+      "previousStageId": "PREPARATION",
+      "stageSemanticId": "P",
+      "assignedById": 1,
+      "createdAt": "2026-07-17T14:16:21.000Z",
+      "updatedAt": "2026-07-19T11:49:33.000Z",
+      "closedAt": "2026-07-24T00:00:00.000Z",
+      "begindate": "2026-07-17T00:00:00.000Z",
+      "closed": false,
+      "entityTypeId": 2
+    }
+  ],
+  "meta": {
+    "total": 0,
+    "hasMore": true
+  }
+}

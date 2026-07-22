@@ -1,0 +1,25 @@
+{
+  "success": true,
+  "data": {
+    "entityApi": {
+      "description": "Entity API registry excerpt for dashboard MVP.",
+      "entities": {
+        "deals": "/v1/deals",
+        "statuses": "/v1/statuses",
+        "currencies": "/v1/currencies",
+        "deal-categories": "/v1/deal-categories",
+        "users": "/v1/users"
+      },
+      "operations": [
+        "GET (list/by-id)",
+        "POST /search",
+        "POST /aggregate",
+        "POST /batch"
+      ],
+      "docs": {
+        "overview": "https://vibecode.bitrix24.tech/docs-content/entity-api.md",
+        "filtering": "https://vibecode.bitrix24.tech/docs-content/filtering.md"
+      }
+    }
+  }
+}

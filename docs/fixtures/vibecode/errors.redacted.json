@@ -1,0 +1,32 @@
+{
+  "missingApiKey": {
+    "status": 401,
+    "body": {
+      "success": false,
+      "error": {
+        "code": "MISSING_API_KEY",
+        "message": "API key required. Pass via X-Api-Key header."
+      }
+    }
+  },
+  "invalidFilterOperator": {
+    "status": 400,
+    "body": {
+      "success": false,
+      "error": {
+        "code": "INVALID_FILTER_OPERATOR",
+        "message": "Unknown filter operator: to. Supported: $gt, $gte, $lt, $lte, $ne, $contains, $in, $nin, >, >=, <, <=, !, %, !="
+      }
+    }
+  },
+  "invalidAggregateGroupBy": {
+    "status": 400,
+    "body": {
+      "success": false,
+      "error": {
+        "code": "INVALID_PARAMS",
+        "message": "groupBy field 'currency' is not aggregatable on this entity. Available: amount, stageId, stageSemanticId, categoryId, assignedById, sourceId."
+      }
+    }
+  }
+}

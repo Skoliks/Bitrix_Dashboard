@@ -1,0 +1,40 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/deals/aggregate",
+    "body": {
+      "op": "count",
+      "groupBy": ["stageId"],
+      "filter": {
+        "categoryId": 0
+      },
+      "limit": 5000
+    }
+  },
+  "response": {
+    "success": true,
+    "data": {
+      "count": 9,
+      "aggregates": {},
+      "groups": [
+        {
+          "stageId": "EXECUTING",
+          "count": 1,
+          "aggregates": {}
+        },
+        {
+          "stageId": "WON",
+          "count": 2,
+          "aggregates": {}
+        }
+      ],
+      "meta": {
+        "totalRecords": 9,
+        "recordsProcessed": 9,
+        "truncated": false,
+        "groupTotal": 6,
+        "groupsTruncated": false
+      }
+    }
+  }
+}

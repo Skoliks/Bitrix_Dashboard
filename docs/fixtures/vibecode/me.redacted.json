@@ -1,0 +1,44 @@
+{
+  "success": true,
+  "data": {
+    "portal": "[REDACTED_PORTAL]",
+    "tariff": {
+      "code": "ru_demo",
+      "name": "[REDACTED_TEXT]",
+      "isCommercial": false,
+      "wasEverCommercial": false,
+      "kind": "CLOUD"
+    },
+    "scopes": ["crm", "user", "user_basic", "user_brief", "placement"],
+    "accessMode": "READWRITE",
+    "api": {
+      "entityApi": {
+        "entities": {
+          "deals": "/v1/deals",
+          "statuses": "/v1/statuses",
+          "currencies": "/v1/currencies",
+          "deal-categories": "/v1/deal-categories",
+          "users": "/v1/users"
+        },
+        "operations": [
+          "GET (list/by-id)",
+          "POST (create)",
+          "PATCH (update)",
+          "DELETE",
+          "GET /fields",
+          "POST /search",
+          "POST /aggregate",
+          "POST /batch"
+        ]
+      }
+    },
+    "infra": {
+      "enabled": true,
+      "providers": ["bitrix-cloud"],
+      "limits": {
+        "execTimeout": 600,
+        "logsLinesMax": 500
+      }
+    }
+  }
+}

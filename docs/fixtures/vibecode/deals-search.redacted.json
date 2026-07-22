@@ -1,0 +1,44 @@
+{
+  "request": {
+    "method": "POST",
+    "path": "/v1/deals/search",
+    "body": {
+      "filter": {
+        "categoryId": 0,
+        "stageSemanticId": "P",
+        "currency": "RUB",
+        "createdAt": {
+          "$gte": "2026-07-01",
+          "$lte": "2026-07-22"
+        }
+      },
+      "limit": 2
+    }
+  },
+  "response": {
+    "success": true,
+    "data": [
+      {
+        "id": 4,
+        "title": "[REDACTED_DEAL_TITLE]",
+        "amount": 0,
+        "currency": "RUB",
+        "categoryId": 0,
+        "stageId": "PREPAYMENT_INVOICE",
+        "stageSemanticId": "P",
+        "assignedById": 1,
+        "createdAt": "2026-07-17T14:16:21.000Z",
+        "updatedAt": "2026-07-19T11:49:33.000Z",
+        "closedAt": "2026-07-24T00:00:00.000Z"
+      }
+    ],
+    "meta": {
+      "total": 5,
+      "hasMore": true,
+      "autoWindowed": true,
+      "windowCount": 3,
+      "batchWaves": 1,
+      "durationMs": 248
+    }
+  }
+}

@@ -1,0 +1,14 @@
+{
+  "success": true,
+  "data": {
+    "id": 2,
+    "createdAt": "2026-07-19T00:00:00.000Z",
+    "name": "[REDACTED_CATEGORY_NAME]",
+    "sort": 100,
+    "isLocked": false
+  },
+  "meta": {
+    "total": 0,
+    "hasMore": false
+  }
+}
