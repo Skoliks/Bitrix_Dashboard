@@ -356,17 +356,17 @@
 - Изменить: `docs/07-api-contracts.md`, если финальные DTO уточняются
 
 **Работы:**
-- [ ] Перед началом убедиться, что Phase 4.5 закрыта или пользователь явно утвердил documented residual risk.
-- [ ] Рассчитать KPI: «Открыто сейчас», «Открыто из созданных за период», «Выиграно за период», «Сумма выигранных за период», «Средний чек».
-- [ ] Для денег возвращать суммы по валютам; при `currency=all` не объединять валюты.
-- [ ] Сделки без суммы считать с `amount = 0`.
-- [ ] Сделки без валюты учитывать в количестве и исключать из денежных сумм с warning `INCOMPLETE_FINANCIAL_DATA`.
-- [ ] Классифицировать сделки по `stageSemanticId`, fallback из `Stage.semantics`; при неизвестной семантике вернуть warning `UNKNOWN_STAGE_SEMANTICS`.
-- [ ] Построить воронку по всем стадиям выбранной воронки, включая нулевые стадии, со `share`, `amountsByCurrency`, `sort`, `color`.
-- [ ] Построить trend по созданным и выигранным сделкам с группировкой по дням, неделям или месяцам по длине периода.
-- [ ] Вернуть recent deals limit 15, `createdAt desc`, `assignedName` или fallback на `assignedById`.
-- [ ] При `meta.truncated=true` вернуть warning `PARTIAL_AGGREGATION` и пометить затронутые блоки в `meta`.
-- [ ] Разделить блокирующие ошибки и частичные warnings.
+- [x] Перед началом убедиться, что Phase 4.5 закрыта или пользователь явно утвердил documented residual risk.
+- [x] Рассчитать KPI: «Открыто сейчас», «Открыто из созданных за период», «Выиграно за период», «Сумма выигранных за период», «Средний чек».
+- [x] Для денег возвращать суммы по валютам; при `currency=all` не объединять валюты.
+- [x] Сделки без суммы считать с `amount = 0`.
+- [x] Сделки без валюты учитывать в количестве и исключать из денежных сумм с warning `INCOMPLETE_FINANCIAL_DATA`.
+- [x] Классифицировать сделки по `stageSemanticId`, fallback из `Stage.semantics`; при неизвестной семантике вернуть warning `UNKNOWN_STAGE_SEMANTICS`.
+- [x] Построить воронку по всем стадиям выбранной воронки, включая нулевые стадии, со `share`, `amountsByCurrency`, `sort`, `color`.
+- [x] Построить trend по созданным и выигранным сделкам с группировкой по дням, неделям или месяцам по длине периода.
+- [x] Вернуть recent deals limit 15, `createdAt desc`, `assignedName` или fallback на `assignedById`.
+- [x] При `meta.truncated=true` вернуть warning `PARTIAL_AGGREGATION` и пометить затронутые блоки в `meta`.
+- [x] Разделить блокирующие ошибки и частичные warnings.
 
 **Критерии готовности:**
 - `GET /api/dashboard` возвращает `DashboardResponse` с `filters`, `references`, `kpi`, `stageFunnel`, `trend`, `recentDeals`, `warnings`, `meta`.
@@ -391,6 +391,12 @@
 - `/v1/deals/aggregate` может не поддерживать нужную группировку в одном запросе; тогда потребуется несколько запросов или частичный список.
 - `meta.truncated=true` делает KPI предварительными, это обязательно должно быть явно видно.
 - Неверное разделение blocking errors и warnings может скрыть полезные данные.
+
+**Статус Phase 5 от 2026-07-23:**
+- Сделано: реализован `GET /api/dashboard`; добавлен `DashboardResponse`; создан pure aggregation service для KPI, per-currency money, average won amount, stage funnel, trend, recent deals, warnings и meta; dashboard route применяет session boundary Phase 4.5, bootstrap references, filter validation, timezone date range, Phase 4 query builder и VibeCode search/aggregate calls; `docs/07-api-contracts.md` уточнён BFF dashboard contract.
+- Изменены файлы: `backend/src/services/aggregationService.ts`; `backend/src/http/routes/dashboard.ts`; `backend/src/http/app.ts`; `backend/src/types/api.ts`; `backend/src/services/dealsQueryService.ts`; `backend/tests/services/aggregationService.test.ts`; `backend/tests/http/dashboard.test.ts`; `backend/tests/services/dealsQueryService.test.ts`; `docs/06-plan.md`; `docs/07-api-contracts.md`.
+- Пройдены тесты: `cd backend; pnpm vitest run tests/services/aggregationService.test.ts tests/http/dashboard.test.ts tests/services/dealsQueryService.test.ts` (3 files, 10 tests); `cd backend; pnpm run test` (19 files, 65 tests); `cd backend; pnpm run typecheck`; `cd backend; pnpm run lint`; `cd backend; pnpm run build`.
+- Остались риски: monetary KPI считаются из bounded search results (`limit=500`) из-за неподтверждённого `groupBy: currency` в aggregate API; если bounded search достигает limit, backend возвращает `PARTIAL_AGGREGATION`, но production-like smoke и windowing всё ещё нужны для широких диапазонов; real VibeCode inclusivity for `createdAt`/`closedAt` boundaries всё ещё требует smoke; frontend пока не использует `/api/dashboard` до Phase 6.
 
 ## Phase 6. Frontend API Layer In `dashboard-app/`
 

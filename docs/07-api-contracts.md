@@ -207,6 +207,89 @@ Observed aggregatable group fields from error response:
 
 `currency` is not accepted as a `groupBy` field in the tested response. Multi-currency summaries must either query/filter per currency or compute from deal list/other confirmed aggregate shape in a later phase.
 
+## Backend BFF Contracts
+
+### GET `/api/dashboard`
+
+Purpose: return read-only dashboard data for one selected deal category, calendar period and currency filter.
+
+Query:
+
+```ts
+type DashboardQuery = {
+  categoryId?: number
+  preset?: 'last7' | 'last30' | 'last90' | 'currentMonth' | 'previousMonth' | 'custom'
+  dateFrom?: string
+  dateTo?: string
+  currency?: 'all' | string
+}
+```
+
+Response:
+
+```ts
+type DashboardResponse = {
+  filters: DashboardQuery & { categoryId: number; preset: string; currency: 'all' | string }
+  references: Pick<BootstrapResponse, 'categories' | 'stages' | 'currencies' | 'users' | 'timeZone'>
+  kpi: {
+    openNow: { count: number }
+    openCreated: { count: number }
+    won: { count: number }
+    wonAmountByCurrency: Array<{ currency: string; amount: number }>
+    averageWonAmountByCurrency: Array<{ currency: string; amount: number }>
+  }
+  stageFunnel: Array<{
+    stageId: string
+    name: string
+    sort: number
+    color?: string
+    semantic: string | null
+    count: number
+    share: number
+    amountsByCurrency: Array<{ currency: string; amount: number }>
+  }>
+  trend: {
+    bucket: 'day' | 'week' | 'month'
+    points: Array<{
+      period: string
+      createdCount: number
+      wonCount: number
+      wonAmountsByCurrency: Array<{ currency: string; amount: number }>
+    }>
+  }
+  recentDeals: Array<{
+    id: number
+    title: string
+    amount: number
+    currency: string | null
+    categoryId: number
+    stageId: string
+    stageSemanticId: string | null
+    assignedById: number | null
+    assignedName: string | null
+    createdAt: string
+    updatedAt: string
+    closedAt: string | null
+  }>
+  warnings: Array<{
+    code: 'USERS_UNAVAILABLE' | 'INCOMPLETE_FINANCIAL_DATA' | 'UNKNOWN_STAGE_SEMANTICS' | 'PARTIAL_AGGREGATION'
+  }>
+  meta: {
+    partialAggregation: boolean
+    truncatedBlocks: string[]
+    totalRecords: number
+    recordsProcessed: number
+  }
+}
+```
+
+Notes:
+
+- Monetary KPI are returned per currency and are not merged across currencies.
+- Deals without currency are included in counts, excluded from money, and produce `INCOMPLETE_FINANCIAL_DATA`.
+- `PARTIAL_AGGREGATION` is returned when VibeCode aggregate `meta.truncated=true` or a bounded deal search reaches its current safety limit.
+- `recentDeals` is a separate search query and does not depend on aggregate truncation.
+
 ### GET `/v1/deal-categories`
 
 Observed response can return a single object, not an array:

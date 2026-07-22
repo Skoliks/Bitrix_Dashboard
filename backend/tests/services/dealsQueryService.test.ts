@@ -48,11 +48,11 @@ describe('deals query service', () => {
     expect(queries.trendWon.filter).toHaveProperty('closedAt')
     expect(queries.trendCreated).toMatchObject({
       limit: 500,
-      select: ['id', 'amount', 'currency', 'createdAt', 'closedAt', 'stageSemanticId']
+      select: ['id', 'amount', 'currency', 'stageId', 'createdAt', 'closedAt', 'stageSemanticId']
     })
     expect(queries.trendWon).toMatchObject({
       limit: 500,
-      select: ['id', 'amount', 'currency', 'createdAt', 'closedAt', 'stageSemanticId']
+      select: ['id', 'amount', 'currency', 'stageId', 'createdAt', 'closedAt', 'stageSemanticId']
     })
     expect(JSON.stringify(queries)).not.toContain('"from"')
     expect(JSON.stringify(queries)).not.toContain('"to"')

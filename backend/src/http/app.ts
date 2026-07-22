@@ -2,9 +2,10 @@ import { getConfigValidationError, loadConfig, type ConfigResult, type PublicCon
 import { createLogger } from '../logging/logger.js'
 import { createReferenceDataService, type ReferenceDataService } from '../services/referenceDataService.js'
 import type { HealthResponse, ReadyResponse } from '../types/api.js'
-import { createVibeCodeClient } from '../vibecode/client.js'
+import { createVibeCodeClient, type VibeCodeClient } from '../vibecode/client.js'
 import { AppError, jsonErrorResponse } from './errors.js'
 import { handleBootstrap } from './routes/bootstrap.js'
+import { handleDashboard } from './routes/dashboard.js'
 import { applyCorsHeaders, applySecurityHeaders } from './securityHeaders.js'
 
 export interface App {
@@ -13,13 +14,15 @@ export interface App {
 
 interface AppOptions {
   referenceDataService?: ReferenceDataService
+  vibeCodeClient?: VibeCodeClient
 }
 
 export const createApp = (env: Record<string, string | undefined> = process.env, options: AppOptions = {}): App => {
   const config = loadConfig(env)
   const publicConfig = normalizePublicConfig(config)
   const logger = createLogger(publicConfig.logLevel)
-  const referenceDataService = options.referenceDataService ?? createDefaultReferenceDataService(config)
+  const vibeCodeClient = options.vibeCodeClient ?? createDefaultVibeCodeClient(config)
+  const referenceDataService = options.referenceDataService ?? createDefaultReferenceDataService(config, vibeCodeClient)
 
   return {
     async fetch(request: Request): Promise<Response> {
@@ -67,6 +70,14 @@ export const createApp = (env: Record<string, string | undefined> = process.env,
           return await handleBootstrap(request, referenceDataService, headers, config.sessionContext)
         }
 
+        if (request.method === 'GET' && url.pathname === '/api/dashboard') {
+          if (!config.isValid) {
+            throw getConfigValidationError(config)
+          }
+
+          return await handleDashboard(request, referenceDataService, vibeCodeClient, headers, config.sessionContext)
+        }
+
         throw new AppError('VALIDATION_ERROR', 'Route not found.', 404)
       } catch (error) {
         logger.warn('Request failed', { error })
@@ -92,7 +103,26 @@ const normalizePublicConfig = (config: ConfigResult): PublicConfig => ({
   port: config.publicConfig.port ?? 3000
 })
 
-const createDefaultReferenceDataService = (config: ConfigResult): ReferenceDataService => {
+const createDefaultVibeCodeClient = (config: ConfigResult): VibeCodeClient => {
+  if (!config.isValid) {
+    return {
+      async getDeals() { throw getConfigValidationError(config) },
+      async searchDeals() { throw getConfigValidationError(config) },
+      async aggregateDeals() { throw getConfigValidationError(config) },
+      async getDealCategories() { throw getConfigValidationError(config) },
+      async getStatuses() { throw getConfigValidationError(config) },
+      async getUsers() { throw getConfigValidationError(config) },
+      async getCurrencies() { throw getConfigValidationError(config) }
+    }
+  }
+
+  return createVibeCodeClient({
+    apiBaseUrl: config.vibeCodeApiBaseUrl,
+    appKey: config.vibeCodeAppKey
+  })
+}
+
+const createDefaultReferenceDataService = (config: ConfigResult, client: VibeCodeClient): ReferenceDataService => {
   if (!config.isValid) {
     return {
       async getBootstrap() {
@@ -102,9 +132,6 @@ const createDefaultReferenceDataService = (config: ConfigResult): ReferenceDataS
   }
 
   return createReferenceDataService({
-    client: createVibeCodeClient({
-      apiBaseUrl: config.vibeCodeApiBaseUrl,
-      appKey: config.vibeCodeAppKey
-    })
+    client
   })
 }

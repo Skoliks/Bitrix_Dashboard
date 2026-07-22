@@ -60,7 +60,7 @@ const recentDealSelect = [
   'closedAt'
 ]
 
-const trendDealSelect = ['id', 'amount', 'currency', 'createdAt', 'closedAt', 'stageSemanticId']
+const trendDealSelect = ['id', 'amount', 'currency', 'stageId', 'createdAt', 'closedAt', 'stageSemanticId']
 
 export const buildDashboardQueries = (input: QueryInput): DashboardQueries => ({
   openNow: {

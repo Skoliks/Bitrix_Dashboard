@@ -81,3 +81,63 @@ export interface BootstrapResponse {
     code: 'USERS_UNAVAILABLE'
   }>
 }
+
+export interface DashboardResponse {
+  filters: {
+    categoryId: number
+    preset: 'last7' | 'last30' | 'last90' | 'currentMonth' | 'previousMonth' | 'custom'
+    dateFrom?: string
+    dateTo?: string
+    currency: 'all' | string
+  }
+  references: Pick<BootstrapResponse, 'categories' | 'stages' | 'currencies' | 'users' | 'timeZone'>
+  kpi: {
+    openNow: { count: number }
+    openCreated: { count: number }
+    won: { count: number }
+    wonAmountByCurrency: Array<{ currency: string; amount: number }>
+    averageWonAmountByCurrency: Array<{ currency: string; amount: number }>
+  }
+  stageFunnel: Array<{
+    stageId: string
+    name: string
+    sort: number
+    color?: string
+    semantic: string | null
+    count: number
+    share: number
+    amountsByCurrency: Array<{ currency: string; amount: number }>
+  }>
+  trend: {
+    bucket: 'day' | 'week' | 'month'
+    points: Array<{
+      period: string
+      createdCount: number
+      wonCount: number
+      wonAmountsByCurrency: Array<{ currency: string; amount: number }>
+    }>
+  }
+  recentDeals: Array<{
+    id: number
+    title: string
+    amount: number
+    currency: string | null
+    categoryId: number
+    stageId: string
+    stageSemanticId: string | null
+    assignedById: number | null
+    assignedName: string | null
+    createdAt: string
+    updatedAt: string
+    closedAt: string | null
+  }>
+  warnings: Array<{
+    code: 'USERS_UNAVAILABLE' | 'INCOMPLETE_FINANCIAL_DATA' | 'UNKNOWN_STAGE_SEMANTICS' | 'PARTIAL_AGGREGATION'
+  }>
+  meta: {
+    partialAggregation: boolean
+    truncatedBlocks: string[]
+    totalRecords: number
+    recordsProcessed: number
+  }
+}
