@@ -1,12 +1,12 @@
 <script setup lang="ts">
-import type { B24Frame } from '@bitrix24/b24jssdk'
 import type { DropdownMenuItem } from '@bitrix24/b24ui-nuxt'
-import { ref, computed } from 'vue'
+import { ref, computed, onMounted } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useHead } from '@unhead/vue'
-import { useDealStats } from '../composables/useDealStats'
+import { useSalesDashboard } from '../composables/useSalesDashboard'
 import { useDashboard } from '../composables/useDashboard'
 import { useB24 } from '../composables/useB24'
+import type { DashboardWarning } from '../types/dashboard'
 import Bell1Icon from '@bitrix24/b24icons-vue/main/Bell1Icon'
 import PlusLIcon from '@bitrix24/b24icons-vue/outline/PlusLIcon'
 import SendIcon from '@bitrix24/b24icons-vue/outline/SendIcon'
@@ -16,16 +16,26 @@ import Market1Icon from '@bitrix24/b24icons-vue/main/Market1Icon'
 
 const { t } = useI18n()
 useHead({ title: t('page.index.seo.title') })
-const { period, range, isLoading, loadDeals } = useDealStats()
+const salesDashboard = useSalesDashboard()
 
 const { isBitrixMobile } = useDevice()
 const { isNotificationsSlideoverOpen } = useDashboard()
 const b24Instance = useB24()
 
-const $b24 = b24Instance.get() as B24Frame
 const isUseB24 = computed<boolean>(() => {
   return b24Instance.isInit()
 })
+const dashboard = computed(() => salesDashboard.dashboard.value)
+const warningTitleByCode: Record<DashboardWarning['code'], string> = {
+  USERS_UNAVAILABLE: 'Users are temporarily unavailable',
+  INCOMPLETE_FINANCIAL_DATA: 'Some deal amounts are incomplete',
+  UNKNOWN_STAGE_SEMANTICS: 'Some stage semantics are unknown',
+  PARTIAL_AGGREGATION: 'Dashboard data is partially aggregated'
+}
+const warnings = computed(() => salesDashboard.warnings.value.map(warning => ({
+  ...warning,
+  title: warningTitleByCode[warning.code]
+})))
 
 const addButton = ref({
   isOnlyBitrixMobile: false,
@@ -51,10 +61,13 @@ async function initPage() {
   /**
    * @memo Tracking locale via watch is not required, since in the Bitrix24 interface, changing the language initiates a full page reload.
    */
-  $b24.parent.setTitle(t('page.index.seo.title'))
+  b24Instance.getFrame().parent.setTitle(t('page.index.seo.title'))
 }
 
 await initPage()
+onMounted(() => {
+  void salesDashboard.load()
+})
 </script>
 
 <template>
@@ -66,7 +79,7 @@ await initPage()
             v-if="!isUseB24"
             size="sm"
             to="/install"
-            label="Mock Installation"
+            label="Install"
             color="air-boost"
             :icon="Market1Icon"
             :b24ui="{ label: 'hidden sm:block', baseLine: 'ps-[5px] pe-[5px] sm:pe-[9px]' }"
@@ -95,15 +108,11 @@ await initPage()
         <template #left>
           <B24Button
             :icon="DatabaseIcon"
-            label="Reload"
+            label="Refresh"
             color="air-secondary"
             loading-auto
-            @click="loadDeals"
+            @click="() => salesDashboard.refresh()"
           />
-
-          <HomePeriodSelect v-model="period" />
-
-          <HomeDateRangePicker v-model="range" />
         </template>
       </B24DashboardToolbar>
     </template>
@@ -121,14 +130,83 @@ await initPage()
           class="fixed bottom-[13.5px] right-[24px] rounded-[18px] z-10 opacity-70 py-[29px] ps-[25px] pe-[33px] [--ui-btn-icon-size:32px]"
         />
       </B24DropdownMenu>
-      <HomeStats />
-      <template v-if="isLoading">
+      <section class="grid gap-4">
+        <B24Alert
+          v-if="salesDashboard.status.value === 'error'"
+          color="air-primary-alert"
+          title="Dashboard is unavailable"
+          :description="salesDashboard.error.value?.message"
+        />
+        <B24Alert
+          v-for="warning in warnings"
+          :key="warning.code"
+          color="air-warning"
+          :title="warning.title"
+        />
+        <div class="grid gap-3 sm:grid-cols-3">
+          <B24Card>
+            <div class="text-sm text-muted">
+              Open deals
+            </div>
+            <div class="text-2xl font-semibold">
+              {{ dashboard?.kpi.openNow.count ?? 0 }}
+            </div>
+          </B24Card>
+          <B24Card>
+            <div class="text-sm text-muted">
+              Created deals
+            </div>
+            <div class="text-2xl font-semibold">
+              {{ dashboard?.kpi.openCreated.count ?? 0 }}
+            </div>
+          </B24Card>
+          <B24Card>
+            <div class="text-sm text-muted">
+              Won deals
+            </div>
+            <div class="text-2xl font-semibold">
+              {{ dashboard?.kpi.won.count ?? 0 }}
+            </div>
+          </B24Card>
+        </div>
+      </section>
+      <template v-if="salesDashboard.isLoading.value">
         <HomeLoaderChart class="min-h-[470px]" />
         <HomeLoaderSales class="min-h-[230px]" />
       </template>
       <template v-else>
-        <HomeChart />
-        <HomeSales />
+        <section class="grid gap-4 mt-4">
+          <B24Card>
+            <div class="text-sm text-muted">
+              Sales funnel
+            </div>
+            <div class="grid gap-2 mt-3">
+              <div
+                v-for="stage in dashboard?.stageFunnel ?? []"
+                :key="stage.stageId"
+                class="flex items-center justify-between gap-3"
+              >
+                <span>{{ stage.name }}</span>
+                <span class="font-medium">{{ stage.count }}</span>
+              </div>
+            </div>
+          </B24Card>
+          <B24Card>
+            <div class="text-sm text-muted">
+              Recent deals
+            </div>
+            <div class="grid gap-2 mt-3">
+              <div
+                v-for="deal in dashboard?.recentDeals ?? []"
+                :key="deal.id"
+                class="flex items-center justify-between gap-3"
+              >
+                <span>{{ deal.title }}</span>
+                <span class="font-medium">{{ deal.amount }} {{ deal.currency ?? '' }}</span>
+              </div>
+            </div>
+          </B24Card>
+        </section>
       </template>
     </template>
   </B24DashboardPanel>

@@ -191,7 +191,8 @@ const items = computed<DropdownMenuItem[]>(() => [
       },
       {
         label: 'Dashboard',
-        to: 'https://bitrix24.github.io/templates-dashboard-vue/',
+        to: 'https://github.com/Skoliks/Bitrix_Dashboard',
+        target: '_blank',
         checked: true,
         type: 'checkbox'
       }

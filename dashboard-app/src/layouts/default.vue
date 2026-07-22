@@ -118,7 +118,7 @@ const links = computed<NavigationMenuItem[][]>(() => [
     {
       label: 'GitHub',
       icon: GitHubIcon,
-      to: 'https://github.com/bitrix24/templates-dashboard-vue',
+      to: 'https://github.com/Skoliks/Bitrix_Dashboard',
       target: '_blank'
     }
   ]
@@ -138,7 +138,7 @@ const groups = computed<CommandPaletteGroup[]>(() => [
         id: 'source',
         label: 'View page source',
         icon: GitHubIcon,
-        to: `https://github.com/bitrix24/templates-dashboard-vue/blob/main/src/pages${route.path === '/' ? '/index' : route.path}.vue`,
+        to: `https://github.com/Skoliks/Bitrix_Dashboard/blob/main/dashboard-app/src/pages${route.path === '/' ? '/index' : route.path}.vue`,
         target: '_blank'
       }
     ] as CommandPaletteItem[]

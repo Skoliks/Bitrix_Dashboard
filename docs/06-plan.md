@@ -414,13 +414,13 @@
 - Изменить: `docs/07-api-contracts.md`, если frontend выявит проблему DTO
 
 **Работы:**
-- [ ] Описать frontend DTO, совпадающие с `DashboardResponse` backend.
-- [ ] Реализовать `getBootstrap()` и `getDashboard(filters)` только через `/api/bootstrap` и `/api/dashboard`.
-- [ ] Добавить локальный dev/mock режим без production-секретов и без обращения к reference-папкам.
-- [ ] Реализовать state machine: initial loading, ready, refreshing, empty, blocking error, partial warnings.
-- [ ] При быстрой смене фильтров показывать только результат последнего запроса.
-- [ ] Не очищать весь экран при refresh; старые данные можно приглушать до завершения нового запроса.
-- [ ] Не сохранять session token в `localStorage`, `sessionStorage`, query string или frontend state.
+- [x] Описать frontend DTO, совпадающие с `DashboardResponse` backend.
+- [x] Реализовать `getBootstrap()` и `getDashboard(filters)` только через `/api/bootstrap` и `/api/dashboard`.
+- [x] Добавить локальный dev/mock режим без production-секретов и без обращения к reference-папкам.
+- [x] Реализовать state machine: initial loading, ready, refreshing, empty, blocking error, partial warnings.
+- [x] При быстрой смене фильтров показывать только результат последнего запроса.
+- [x] Не очищать весь экран при refresh; старые данные можно приглушать до завершения нового запроса.
+- [x] Не сохранять session token в `localStorage`, `sessionStorage`, query string или frontend state.
 
 **Критерии готовности:**
 - Frontend не вызывает VibeCode API и Bitrix24 CRM REST напрямую для данных дашборда.
@@ -440,6 +440,12 @@
 - Существующий `useDealStats` завязан на Bitrix24 SDK и может потребовать аккуратной миграции, чтобы не сломать локальный режим.
 - Race conditions при фильтрах легко дают смешанные KPI/table.
 - Mock-данные не должны становиться production fallback при ошибке backend.
+
+**Статус Phase 6 от 2026-07-23:**
+- Сделано: добавлен frontend DTO/API слой для `/api/bootstrap` и `/api/dashboard`; реализован локальный mock mode через `VITE_DASHBOARD_MOCK_MODE`; добавлен `useSalesDashboard` со state machine `initial/loading/ready/refreshing/empty/error`, stale request guard, сохранением предыдущих данных при refresh и mapping warnings; главная страница переведена с `useDealStats` на backend DTO без хранения session token во frontend state/storage/query; API-клиент нормализует non-JSON/empty backend errors; initial state считается первичной загрузкой без показа нулевых KPI до первого ответа; временные dashboard labels и warning titles приведены к читаемым текстам.
+- Изменены файлы: `dashboard-app/.env.example`; `dashboard-app/src/api/dashboardApi.ts`; `dashboard-app/src/api/dashboardApi.test.ts`; `dashboard-app/src/components/UserMenu.vue`; `dashboard-app/src/composables/useSalesDashboard.ts`; `dashboard-app/src/composables/useSalesDashboard.test.ts`; `dashboard-app/src/layouts/default.vue`; `dashboard-app/src/mocks/dashboard.ts`; `dashboard-app/src/pages/index.vue`; `dashboard-app/src/types/dashboard.ts`; `docs/06-plan.md`.
+- Пройдены тесты: `cd dashboard-app; pnpm vitest run src/api/dashboardApi.test.ts src/composables/useSalesDashboard.test.ts` (2 files, 11 tests); `cd dashboard-app; pnpm run test` (6 files, 42 tests); `cd dashboard-app; pnpm run typecheck`; `cd dashboard-app; pnpm run lint`; `cd dashboard-app; pnpm run build`; `rg -n "vibe_app_|vibe_api_|vibe_session_" dashboard-app/dist` (совпадений нет); `rg -n "templates-dashboard-vue" dashboard-app/dist` (совпадений нет).
+- Остались риски: UI главной страницы пока минимально отображает DTO и всё ещё содержит старые demo actions/navigation, полноценная замена на dashboard components запланирована в Phase 7; старые home-компоненты и `useDealStats` остаются в кодовой базе, но больше не используются `src/pages/index.vue`; production smoke с реальным backend/iframe не выполнялся в этой фазе.
 
 ## Phase 7. Frontend Dashboard UI In `dashboard-app/`
 
