@@ -216,14 +216,14 @@
 - Изменить: `backend/src/types/api.ts`
 
 **Работы:**
-- [ ] Загрузить `/v1/deal-categories`, `/v1/statuses`, `/v1/currencies`, `/v1/users`.
-- [ ] Для основной воронки использовать `filter[entityId]=DEAL_STAGE`; для дополнительных `filter[entityId]=DEAL_STAGE_<categoryId>`.
-- [ ] Кэшировать справочники с TTL: воронки 10 минут, стадии 10 минут, валюты 30-60 минут, пользователи 5-10 минут.
-- [ ] Использовать cache key с portal scope: `categories:{portalId}`, `stages:{portalId}:{categoryId}`, `currencies:{portalId}`, `users:{portalId}`.
-- [ ] Выбрать дефолтную воронку `categoryId = 0`, если доступна; иначе первую доступную.
-- [ ] Вернуть дефолтный период: последние 30 календарных дней, включая текущий день в timezone портала.
-- [ ] Вернуть дефолтную валюту `all`.
-- [ ] При недоступности `/v1/users` вернуть warning и разрешить dashboard работать с `assignedById`.
+- [x] Загрузить `/v1/deal-categories`, `/v1/statuses`, `/v1/currencies`, `/v1/users`.
+- [x] Для основной воронки использовать `filter[entityId]=DEAL_STAGE`; для дополнительных `filter[entityId]=DEAL_STAGE_<categoryId>`.
+- [x] Кэшировать справочники с TTL: воронки 10 минут, стадии 10 минут, валюты 30-60 минут, пользователи 5-10 минут.
+- [x] Использовать cache key с portal scope: `categories:{portalId}`, `stages:{portalId}:{categoryId}`, `currencies:{portalId}`, `users:{portalId}`.
+- [x] Выбрать дефолтную воронку `categoryId = 0`, если доступна; иначе первую доступную.
+- [x] Вернуть дефолтный период: последние 30 календарных дней, включая текущий день в timezone портала.
+- [x] Вернуть дефолтную валюту `all`.
+- [x] При недоступности `/v1/users` вернуть warning и разрешить dashboard работать с `assignedById`.
 
 **Критерии готовности:**
 - `GET /api/bootstrap` возвращает справочники, timezone, defaults и warnings.
@@ -241,6 +241,12 @@
 - Справочник стадий может отличаться по entityId между порталами.
 - Shared cache без portal key может смешать данные разных порталов.
 - Недоступность users нельзя трактовать как полный отказ dashboard.
+
+**Статус Phase 3 от 2026-07-22:**
+- Сделано: реализованы in-memory TTL cache, reference data service, `GET /api/bootstrap` route и wiring в backend app; bootstrap загружает categories, stages, currencies, users, выбирает default category, считает 30-day default period в timezone пользователя/UTC fallback, возвращает default currency `all`, требует session token и portal id до загрузки данных, возвращает warning `USERS_UNAVAILABLE` только для неблокирующих users failures и не падает на invalid user timezone.
+- Изменены файлы: `backend/src/services/cache.ts`; `backend/src/services/referenceDataService.ts`; `backend/src/http/routes/bootstrap.ts`; `backend/src/http/app.ts`; `backend/src/types/api.ts`; `backend/tests/services/cache.test.ts`; `backend/tests/services/referenceDataService.test.ts`; `backend/tests/http/bootstrap.test.ts`; `docs/06-plan.md`.
+- Пройдены тесты: `cd backend; pnpm run test` (14 files, 37 tests); `cd backend; pnpm run typecheck`; `cd backend; pnpm run lint`; `cd backend; pnpm run build`.
+- Остались риски: timezone берется из первого валидного пользователя с `timeZone` или `UTC`, потому что отдельный portal timezone endpoint не подтвержден; bootstrap route пока использует provisional header-based session context до real iframe/gateway capture; cache in-memory и сбрасывается при restart/scale-out.
 
 ## Phase 4. Backend Date Adapter, Filters And Query Builder
 
