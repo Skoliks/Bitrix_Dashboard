@@ -70,4 +70,22 @@ describe('http app', () => {
       error: { code: 'CRM_ACCESS_DENIED' }
     })
   })
+
+  it('allows the local frontend dev origin for API preflight', async () => {
+    const app = createApp({
+      ...validEnv,
+      LOCAL_FRONTEND_ALLOWED_ORIGINS: 'http://127.0.0.1:5173'
+    })
+    const response = await app.fetch(new Request('http://localhost/api/bootstrap', {
+      method: 'OPTIONS',
+      headers: {
+        origin: 'http://127.0.0.1:5173',
+        'access-control-request-method': 'GET'
+      }
+    }))
+
+    expect(response.status).toBe(204)
+    expect(response.headers.get('access-control-allow-origin')).toBe('http://127.0.0.1:5173')
+    expect(response.headers.get('access-control-allow-methods')).toContain('GET')
+  })
 })

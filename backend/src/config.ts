@@ -38,8 +38,8 @@ export const loadConfig = (env: Env = process.env): ConfigResult => {
   const appKey = readRequired(env, 'VIBECODE_APP_KEY', errors)
   const apiBaseUrl = readUrl(env, 'VIBECODE_API_BASE_URL', errors)
   const appPublicUrl = readUrl(env, 'APP_PUBLIC_URL', errors)
-  const allowedOrigins = readOrigins(env, errors)
   const nodeEnv = readEnum(env.NODE_ENV, runtimeModes, 'development', 'NODE_ENV', errors)
+  const allowedOrigins = readOrigins(env, nodeEnv, errors)
   const sessionContextMode = readSessionContextMode(env, nodeEnv, errors)
   const sessionContextHmacSecret = readSessionContextHmacSecret(env, sessionContextMode, errors)
   const logLevel = readEnum(env.LOG_LEVEL, logLevels, 'info', 'LOG_LEVEL', errors)
@@ -120,13 +120,35 @@ const readUrl = (env: Env, key: string, errors: string[]): URL | undefined => {
   }
 }
 
-const readOrigins = (env: Env, errors: string[]): string[] => {
-  const raw = readRequired(env, 'BITRIX24_ALLOWED_ORIGINS', errors)
-  if (!raw) {
-    return []
+const readOrigins = (env: Env, nodeEnv: RuntimeMode, errors: string[]): string[] => {
+  const origins: string[] = []
+  appendOrigins(origins, env.BITRIX24_ALLOWED_ORIGINS, 'BITRIX24_ALLOWED_ORIGINS', errors)
+
+  if (nodeEnv !== 'production') {
+    appendOrigins(origins, env.LOCAL_FRONTEND_ALLOWED_ORIGINS, 'LOCAL_FRONTEND_ALLOWED_ORIGINS', errors)
   }
 
-  const origins: string[] = []
+  if (!env.BITRIX24_ALLOWED_ORIGINS?.trim()) {
+    errors.push('BITRIX24_ALLOWED_ORIGINS is required')
+  }
+
+  if (origins.length === 0) {
+    errors.push('BITRIX24_ALLOWED_ORIGINS must contain at least one origin')
+  }
+
+  return [...new Set(origins)]
+}
+
+const appendOrigins = (
+  origins: string[],
+  raw: string | undefined,
+  key: string,
+  errors: string[]
+): void => {
+  if (!raw?.trim()) {
+    return
+  }
+
   for (const item of raw.split(',')) {
     const value = item.trim()
     if (!value) {
@@ -136,15 +158,9 @@ const readOrigins = (env: Env, errors: string[]): string[] => {
     try {
       origins.push(new URL(value).origin)
     } catch {
-      errors.push(`BITRIX24_ALLOWED_ORIGINS contains invalid URL: ${value}`)
+      errors.push(`${key} contains invalid URL: ${value}`)
     }
   }
-
-  if (origins.length === 0) {
-    errors.push('BITRIX24_ALLOWED_ORIGINS must contain at least one origin')
-  }
-
-  return [...new Set(origins)]
 }
 
 const readEnum = <T extends string>(

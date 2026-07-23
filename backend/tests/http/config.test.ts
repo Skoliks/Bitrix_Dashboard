@@ -28,6 +28,35 @@ describe('loadConfig', () => {
     expect(JSON.stringify(config.publicConfig)).not.toContain('vibe_app_')
   })
 
+  it('adds local frontend origins outside production', () => {
+    const config = loadConfig({
+      ...validEnv,
+      BITRIX24_ALLOWED_ORIGINS: 'https://portal.bitrix24.com',
+      LOCAL_FRONTEND_ALLOWED_ORIGINS: 'http://127.0.0.1:5173, http://localhost:5173'
+    })
+
+    expect(config.isValid).toBe(true)
+    expect(config.publicConfig.allowedOrigins).toEqual([
+      'https://portal.bitrix24.com',
+      'http://127.0.0.1:5173',
+      'http://localhost:5173'
+    ])
+  })
+
+  it('ignores local frontend origins in production', () => {
+    const config = loadConfig({
+      ...validEnv,
+      NODE_ENV: 'production',
+      SESSION_CONTEXT_MODE: 'signed-headers',
+      SESSION_CONTEXT_HMAC_SECRET: 'test_hmac_secret',
+      BITRIX24_ALLOWED_ORIGINS: 'https://portal.bitrix24.com',
+      LOCAL_FRONTEND_ALLOWED_ORIGINS: 'http://127.0.0.1:5173'
+    })
+
+    expect(config.isValid).toBe(true)
+    expect(config.publicConfig.allowedOrigins).toEqual(['https://portal.bitrix24.com'])
+  })
+
   it('reports missing required env without exposing provided secrets', () => {
     const config = loadConfig({
       ...validEnv,

@@ -117,22 +117,28 @@ describe('dashboard route', () => {
   })
 
   it('uses bootstrap default period when no query period is provided', async () => {
+    vi.useFakeTimers()
+    vi.setSystemTime(new Date('2026-07-22T05:00:00.000Z'))
     const referenceDataService = { getBootstrap: vi.fn(async () => bootstrap) }
     const client = createClient()
     const app = createApp(validEnv, { referenceDataService, vibeCodeClient: client })
 
-    const response = await app.fetch(new Request('http://localhost/api/dashboard', {
-      headers: provisionalHeaders()
-    }))
+    try {
+      const response = await app.fetch(new Request('http://localhost/api/dashboard', {
+        headers: provisionalHeaders()
+      }))
 
-    expect(response.status).toBe(200)
-    expect(client.searchDeals).toHaveBeenCalledWith(expect.objectContaining({
-      body: expect.objectContaining({
-        filter: expect.objectContaining({
-          createdAt: { $gte: '2026-06-23T00:00:00.000Z', $lte: '2026-07-22T23:59:59.999Z' }
+      expect(response.status).toBe(200)
+      expect(client.searchDeals).toHaveBeenCalledWith(expect.objectContaining({
+        body: expect.objectContaining({
+          filter: expect.objectContaining({
+            createdAt: { $gte: '2026-06-23T00:00:00.000Z', $lte: '2026-07-22T23:59:59.999Z' }
+          })
         })
-      })
-    }))
+      }))
+    } finally {
+      vi.useRealTimers()
+    }
   })
 
   it('returns INVALID_FILTERS for invalid query filters without loading deals', async () => {

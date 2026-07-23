@@ -526,11 +526,11 @@
 - Изменить: root `package.json` только если нужен единый workspace/script на уровне репозитория
 
 **Работы:**
-- [ ] Настроить Vite proxy `/api/*` из `dashboard-app/` в локальный `backend/`.
-- [ ] Настроить CORS backend для локального dev origin.
-- [ ] Добавить документированный локальный запуск: backend port, frontend port, env без secrets в репозитории.
-- [ ] Проверить `GET /api/bootstrap` и `GET /api/dashboard` из frontend dev server.
-- [ ] Зафиксировать в `docs/08-local-integration.md` команды запуска, env keys без значений, known local limitations.
+- [x] Настроить Vite proxy `/api/*` из `dashboard-app/` в локальный `backend/`.
+- [x] Настроить CORS backend для локального dev origin.
+- [x] Добавить документированный локальный запуск: backend port, frontend port, env без secrets в репозитории.
+- [x] Проверить `GET /api/bootstrap` и `GET /api/dashboard` из frontend dev server.
+- [x] Зафиксировать в `docs/08-local-integration.md` команды запуска, env keys без значений, known local limitations.
 
 **Критерии готовности:**
 - Локально можно запустить `backend/` и `dashboard-app/` одновременно.
@@ -546,6 +546,12 @@
 - Dev proxy может замаскировать production CORS/frame issues.
 - Локальный mock context может отличаться от VibeCode Gateway.
 - Root workspace scripts могут добавить лишнюю сложность, если их сделать раньше необходимости.
+
+**Статус Phase 8 от 2026-07-23:**
+- Сделано: добавлен Vite proxy `/api` из `dashboard-app` в локальный backend с target по умолчанию `http://127.0.0.1:3000`; добавлен dev-only CORS env `LOCAL_FRONTEND_ALLOWED_ORIGINS`, который игнорируется в production; добавлены `dev:local` scripts для backend/frontend; создана инструкция локального запуска и smoke-проверок.
+- Изменены файлы: `backend/src/config.ts`, `backend/.env.example`, `backend/package.json`, `backend/tests/http/app.test.ts`, `backend/tests/http/config.test.ts`, `backend/tests/http/dashboard.test.ts`, `backend/tests/http/localIntegration.test.ts`, `dashboard-app/vite.config.ts`, `dashboard-app/package.json`, `dashboard-app/src/config/devProxy.ts`, `dashboard-app/src/config/devProxy.test.ts`, `docs/08-local-integration.md`, `docs/06-plan.md`. Root `package.json` не менялся.
+- Пройдены тесты и проверки: `backend` full `pnpm run test`; `dashboard-app` full `pnpm run test`; `pnpm run typecheck`, `pnpm run lint`, `pnpm run build` в `backend/` и `dashboard-app/`; manual smoke через frontend dev server: `GET /api/bootstrap` и `GET /api/dashboard` вернули JSON `401 AUTH_REQUIRED` от backend через Vite proxy без реальной VibeCode-сессии.
+- Остались риски: smoke не подтверждает реальные dashboard data без валидной VibeCode session; Vite proxy не заменяет production CORS/frame validation; frontend browser/network security проверена smoke-уровнем, без Playwright.
 
 ## Phase 9. End-To-End Quality Gates
 

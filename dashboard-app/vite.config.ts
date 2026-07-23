@@ -3,6 +3,7 @@ import vue from '@vitejs/plugin-vue'
 import vueRouter from 'vue-router/vite'
 import vueLayouts from 'vite-plugin-vue-layouts'
 import bitrix24UIPluginVite  from '@bitrix24/b24ui-nuxt/vite'
+import { createApiProxyConfig } from './src/config/devProxy'
 
 // https://vitejs.dev/config/
 export default defineConfig(({ mode }) => {
@@ -45,7 +46,8 @@ export default defineConfig(({ mode }) => {
     ],
     server: {
       // Fix: "Blocked request. This host is not allowed" when using tunnels like ngrok
-      allowedHosts: [...extraAllowedHosts]
+      allowedHosts: [...extraAllowedHosts],
+      proxy: createApiProxyConfig(env.VITE_BFF_PROXY_TARGET)
     }
   }
 })
