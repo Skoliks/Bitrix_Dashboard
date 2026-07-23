@@ -1,7 +1,13 @@
 <script setup lang="ts">
 import { computed } from 'vue'
 import type { BootstrapResponse, DashboardFilterInput, DashboardFilters, DatePreset } from '../../types/dashboard'
-import { buildCategoryOptions, buildCurrencyOptions, buildPeriodOptions } from './dashboardViewModel'
+import {
+  buildCategoryOptions,
+  buildCurrencyOptions,
+  buildFilterChange,
+  buildPeriodOptions,
+  canApplyCustomPeriod
+} from './dashboardViewModel'
 import RefreshIcon from '@bitrix24/b24icons-vue/outline/RefreshIcon'
 
 const props = defineProps<{
@@ -18,15 +24,27 @@ const emit = defineEmits<{
 const categoryOptions = computed(() => buildCategoryOptions(props.references.categories))
 const periodOptions = buildPeriodOptions()
 const currencyOptions = computed(() => buildCurrencyOptions(props.references.currencies))
+const canApply = computed(() => canApplyCustomPeriod(props.modelValue))
 
 const update = (patch: Partial<DashboardFilters>) => {
-  const next = { ...props.modelValue, ...patch }
-  emit('update:modelValue', next)
+  const result = buildFilterChange(props.modelValue, patch)
+  emit('update:modelValue', result.filters)
+  if (result.shouldRefresh) {
+    emit('refresh', result.filters)
+  }
 }
 
 const refresh = () => {
-  emit('refresh', props.modelValue)
+  if (canApply.value) {
+    emit('refresh', props.modelValue)
+  }
 }
+
+const updateCategory = (value: unknown) => update({ categoryId: Number(value) })
+const updatePreset = (value: unknown) => update({ preset: value as DatePreset })
+const updateCurrency = (value: unknown) => update({ currency: String(value) })
+const updateDateFrom = (value: unknown) => update({ dateFrom: String(value) })
+const updateDateTo = (value: unknown) => update({ dateTo: String(value) })
 </script>
 
 <template>
@@ -37,7 +55,7 @@ const refresh = () => {
       :disabled="loading || categoryOptions.length === 0"
       class="dashboard-filter-control"
       aria-label="Воронка"
-      @update:model-value="value => update({ categoryId: Number(value) })"
+      @update:model-value="updateCategory"
     />
     <B24Select
       :model-value="modelValue.preset"
@@ -45,7 +63,7 @@ const refresh = () => {
       :disabled="loading"
       class="dashboard-filter-control"
       aria-label="Период"
-      @update:model-value="value => update({ preset: value as DatePreset })"
+      @update:model-value="updatePreset"
     />
     <B24Select
       :model-value="modelValue.currency"
@@ -53,7 +71,7 @@ const refresh = () => {
       :disabled="loading"
       class="dashboard-filter-control"
       aria-label="Валюта"
-      @update:model-value="value => update({ currency: String(value) })"
+      @update:model-value="updateCurrency"
     />
     <div v-if="modelValue.preset === 'custom'" class="dashboard-custom-period">
       <B24Input
@@ -61,21 +79,29 @@ const refresh = () => {
         type="date"
         :disabled="loading"
         aria-label="Дата начала"
-        @update:model-value="value => update({ dateFrom: String(value) })"
+        @update:model-value="updateDateFrom"
       />
       <B24Input
         :model-value="modelValue.dateTo"
         type="date"
         :disabled="loading"
         aria-label="Дата окончания"
-        @update:model-value="value => update({ dateTo: String(value) })"
+        @update:model-value="updateDateTo"
       />
+      <B24Button
+        color="air-secondary"
+        :disabled="loading || !canApply"
+        @click="refresh"
+      >
+        Применить
+      </B24Button>
     </div>
     <B24Tooltip text="Обновить данные">
       <B24Button
         :icon="RefreshIcon"
         color="air-primary"
         :loading="loading"
+        :disabled="modelValue.preset === 'custom' && !canApply"
         aria-label="Обновить данные"
         @click="refresh"
       />

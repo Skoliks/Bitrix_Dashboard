@@ -56,7 +56,7 @@ const columns: TableColumn<RecentDealRowView>[] = [
           Последние созданные сделки
         </h2>
         <p class="dashboard-muted">
-          15 строк, сортировка по дате создания
+          Новые сделки по выбранным фильтрам
         </p>
       </div>
     </template>

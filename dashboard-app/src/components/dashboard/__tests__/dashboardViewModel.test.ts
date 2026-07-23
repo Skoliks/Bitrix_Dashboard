@@ -2,12 +2,14 @@ import { describe, expect, it } from 'vitest'
 
 import type { BootstrapResponse, DashboardResponse } from '../../../types/dashboard'
 import {
+  buildFilterChange,
   buildCurrencyOptions,
   buildKpiCards,
   buildPeriodOptions,
   buildRecentDealRows,
   buildStageRows,
-  buildWarningMessages
+  buildWarningMessages,
+  canApplyCustomPeriod
 } from '../dashboardViewModel'
 
 const bootstrap: BootstrapResponse = {
@@ -82,8 +84,27 @@ describe('dashboard view model', () => {
     const cards = buildKpiCards(dashboard.kpi, bootstrap.currencies)
 
     expect(cards).toHaveLength(5)
+    expect(cards[3]?.value).toBe('120 000 ₽')
+    expect(cards[4]?.value).toBe('60 000 ₽')
     expect(cards[3]?.money).toEqual(['120 000 ₽', '$900'])
     expect(cards[4]?.money).toEqual(['60 000 ₽', '$450'])
+  })
+
+  it('refreshes non-custom filter changes but waits for valid custom dates', () => {
+    const baseFilters = dashboard.filters
+
+    expect(buildFilterChange(baseFilters, { currency: 'RUB' })).toEqual({
+      filters: { ...baseFilters, currency: 'RUB' },
+      shouldRefresh: true
+    })
+
+    expect(buildFilterChange(baseFilters, { preset: 'custom' })).toEqual({
+      filters: { ...baseFilters, preset: 'custom' },
+      shouldRefresh: false
+    })
+
+    expect(canApplyCustomPeriod({ ...baseFilters, preset: 'custom', dateFrom: '2026-07-20', dateTo: '2026-07-01' })).toBe(false)
+    expect(canApplyCustomPeriod({ ...baseFilters, preset: 'custom', dateFrom: '2026-07-01', dateTo: '2026-07-20' })).toBe(true)
   })
 
   it('includes zero-count stages in funnel rows', () => {

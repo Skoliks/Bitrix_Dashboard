@@ -58,10 +58,6 @@ const refreshDashboard = async (filters: DashboardFilterInput = activeFilters.va
   await salesDashboard.refresh(filters)
 }
 
-const updateAndRefresh = (value: DashboardFiltersModel) => {
-  void refreshDashboard(value)
-}
-
 const openDeal = (deal: RecentDealRowView) => {
   const path = deal.dealUrl ?? `/crm/deal/details/${deal.id}/`
   if (b24Instance.isInit()) {
@@ -129,7 +125,6 @@ onMounted(() => {
             :references="dashboard.references"
             :loading="salesDashboard.isRefreshing.value"
             @refresh="refreshDashboard"
-            @update:model-value="updateAndRefresh"
           />
 
           <DashboardErrorState

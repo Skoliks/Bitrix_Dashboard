@@ -21,8 +21,8 @@ const cards = computed(() => buildKpiCards(props.kpi, props.currencies))
       <div class="dashboard-kpi-value">
         {{ card.value }}
       </div>
-      <div v-if="card.money?.length" class="dashboard-money-list">
-        <span v-for="line in card.money" :key="line">{{ line }}</span>
+      <div v-if="card.money && card.money.length > 1" class="dashboard-money-list">
+        <span v-for="line in card.money.slice(1)" :key="line">{{ line }}</span>
       </div>
       <p class="dashboard-muted">
         {{ card.description }}

@@ -3,9 +3,29 @@ import type {
   DashboardFilters,
   DashboardResponse,
   DashboardWarning,
-  DatePreset,
-  MoneyAmount
 } from '../../types/dashboard'
+import {
+  buildCategoryOptions,
+  buildCurrencyOptions,
+  buildFilterChange,
+  buildPeriodOptions,
+  canApplyCustomPeriod,
+  describePeriod
+} from './dashboardFiltersModel'
+import { firstMoneyOrZero, formatCount, formatDate, formatDateTime, formatMoney, formatMoneyList } from './dashboardFormatters'
+
+export {
+  buildCategoryOptions,
+  buildCurrencyOptions,
+  buildFilterChange,
+  buildPeriodOptions,
+  canApplyCustomPeriod,
+  formatCount,
+  formatDate,
+  formatDateTime,
+  formatMoney,
+  formatMoneyList
+}
 
 export interface SelectOption<T extends string | number = string> {
   value: T
@@ -46,29 +66,6 @@ export interface WarningMessageView {
   description: string
 }
 
-const periodOptions: Array<SelectOption<DatePreset>> = [
-  { value: 'last7', label: 'Последние 7 дней' },
-  { value: 'last30', label: 'Последние 30 дней' },
-  { value: 'last90', label: 'Последние 90 дней' },
-  { value: 'currentMonth', label: 'Текущий месяц' },
-  { value: 'previousMonth', label: 'Прошлый месяц' },
-  { value: 'custom', label: 'Произвольный период' }
-]
-
-export const buildCategoryOptions = (categories: BootstrapResponse['categories']): Array<SelectOption<number>> =>
-  [...categories]
-    .sort((left, right) => left.sort - right.sort || left.id - right.id)
-    .map(category => ({ value: category.id, label: category.name }))
-
-export const buildCurrencyOptions = (currencies: BootstrapResponse['currencies']): Array<SelectOption> => [
-  { value: 'all', label: 'Все валюты' },
-  ...[...currencies]
-    .sort((left, right) => left.sort - right.sort || left.id.localeCompare(right.id))
-    .map(currency => ({ value: currency.id, label: `${currency.id} · ${currency.fullName}` }))
-]
-
-export const buildPeriodOptions = (): Array<SelectOption<DatePreset>> => periodOptions
-
 export const buildKpiCards = (
   kpi: DashboardResponse['kpi'],
   currencies: BootstrapResponse['currencies']
@@ -94,14 +91,14 @@ export const buildKpiCards = (
   {
     key: 'wonAmount',
     title: 'Сумма выигранных',
-    value: moneySummary(kpi.wonAmountByCurrency),
+    value: firstMoneyOrZero(kpi.wonAmountByCurrency, currencies),
     description: 'Валюты не объединяются',
     money: formatMoneyList(kpi.wonAmountByCurrency, currencies)
   },
   {
     key: 'averageWon',
     title: 'Средний чек',
-    value: moneySummary(kpi.averageWonAmountByCurrency),
+    value: firstMoneyOrZero(kpi.averageWonAmountByCurrency, currencies),
     description: 'По выигранным сделкам',
     money: formatMoneyList(kpi.averageWonAmountByCurrency, currencies)
   }
@@ -194,53 +191,10 @@ export const describeFilters = (
   references: DashboardResponse['references']
 ): string => {
   const category = references.categories.find(item => item.id === filters.categoryId)?.name ?? `Воронка #${filters.categoryId}`
-  const period = filters.dateFrom && filters.dateTo
-    ? `${formatDate(filters.dateFrom)} - ${formatDate(filters.dateTo)}`
-    : periodOptions.find(item => item.value === filters.preset)?.label ?? 'Период не выбран'
+  const period = describePeriod(filters)
+    .split(' - ')
+    .map(value => /^\d{4}-\d{2}-\d{2}$/.test(value) ? formatDate(value) : value)
+    .join(' - ')
   const currency = filters.currency === 'all' ? 'Все валюты' : filters.currency
   return `${category} · ${period} · ${currency} · ${references.timeZone}`
-}
-
-export const formatMoneyList = (
-  amounts: MoneyAmount[],
-  currencies: BootstrapResponse['currencies']
-): string[] => amounts.map(amount => formatMoney(amount, currencies))
-
-export const formatMoney = (
-  amount: MoneyAmount,
-  currencies: BootstrapResponse['currencies']
-): string => {
-  const currency = currencies.find(item => item.id === amount.currency)
-  const value = formatAmount(amount.amount)
-  if (!currency) {
-    return `${value} ${amount.currency}`
-  }
-
-  if (currency.formatString.includes('#')) {
-    return currency.formatString.replace('#', value).trim()
-  }
-  return `${value} ${currency.id}`
-}
-
-export const formatCount = (value: number): string => formatAmount(value)
-
-export const formatDate = (value: string): string => new Intl.DateTimeFormat('ru-RU', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric'
-}).format(new Date(`${value}T00:00:00`))
-
-export const formatDateTime = (value: string): string => new Intl.DateTimeFormat('ru-RU', {
-  day: '2-digit',
-  month: '2-digit',
-  year: 'numeric',
-  hour: '2-digit',
-  minute: '2-digit'
-}).format(new Date(value))
-
-const moneySummary = (amounts: MoneyAmount[]): string => amounts.length ? `${amounts.length} вал.` : '0'
-
-const formatAmount = (value: number): string => {
-  const rounded = Number.isInteger(value) ? value.toString() : value.toFixed(2)
-  return rounded.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
 }

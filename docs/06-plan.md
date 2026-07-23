@@ -508,6 +508,12 @@
 - Пройдены тесты: TDD RED подтверждён падением нового `dashboardViewModel.test.ts` до реализации; затем `pnpm vitest run src/components/dashboard/__tests__/dashboardViewModel.test.ts` — 5/5; `pnpm run test` — 47/47; `pnpm run typecheck`; `pnpm run lint`; `pnpm run build`.
 - Остались риски: Playwright/manual iframe screenshots не выполнены, потому что в `dashboard-app` нет установленного Playwright runner; адаптивность проверена кодом/CSS и сборкой, но требует визуального smoke на широкой, средней и узкой iframe-ширине в Phase 8/9. Build проходит с существующими Rollup warnings по `@vueuse/core` pure annotations и chunk size > 500 kB; это не блокирует Phase 7, но должно учитываться в Phase 9 quality gates.
 
+**Статус исправлений ревью Phase 7 от 2026-07-23:**
+- Исправлено: `DashboardFilters.vue` больше не содержит implicit `any` в template handlers; custom period не запускает refresh до валидного диапазона и получил явную кнопку «Применить»; денежные KPI показывают первое значение валюты крупно и остальные валюты отдельными строками; технический текст таблицы заменён пользовательским; форматирование и filter-model логика вынесены из `dashboardViewModel.ts` в отдельные helper-модули.
+- Добавлены/изменены проверки: `dashboardViewModel.test.ts` теперь покрывает поведение refresh для обычных фильтров, ожидание валидных custom dates и новый вид денежных KPI.
+- Пройдены тесты после исправлений: `pnpm vitest run src/components/dashboard/__tests__/dashboardViewModel.test.ts` — 6/6; `pnpm run typecheck`.
+- Остались риски: Vue-компоненты всё ещё не покрыты mount/render тестами, потому что в `dashboard-app` нет `@vue/test-utils`/Playwright runner; визуальный smoke iframe и browser-level component tests остаются задачей Phase 8/9.
+
 ## Phase 8. Cross-App Local Integration
 
 **Цель:** связать `dashboard-app/` и `backend/` локально без деплоя, чтобы проверить реальные frontend-backend контракты.
