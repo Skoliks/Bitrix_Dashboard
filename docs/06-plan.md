@@ -467,20 +467,20 @@
 - Изменить: `dashboard-app/src/locales/ru.json`
 
 **Работы:**
-- [ ] Убрать с главного dashboard шаблонные действия, не входящие в MVP: feedback, add mail, add customer.
-- [ ] Добавить заголовок «Дашборд воронки продаж» и вторичную строку с выбранной воронкой, периодом и timezone портала.
-- [ ] Добавить фильтр воронки, периода и валюты; не показывать «Все воронки».
-- [ ] Добавить refresh icon button.
-- [ ] Отобразить 5 KPI-карточек с корректными денежными списками по валютам.
-- [ ] Реализовать `StageFunnel.vue` как собственный Vue/SVG или HTML/SVG-компонент без тяжёлой новой библиотеки.
-- [ ] Реализовать `TrendChart.vue` на Unovis.
-- [ ] Реализовать `RecentDealsTable.vue` на TanStack Table, 15 строк, `createdAt desc`, fallback `assignedById`.
-- [ ] Открывать карточку сделки по клику через Bitrix24 SDK или доступный `dealUrl`; не показывать write actions.
-- [ ] Показать warnings: partial aggregation, incomplete financial data, missing users, unknown stage semantics.
-- [ ] Реализовать skeleton, empty dashboard, no recent deals, no stages, access/session/errors.
-- [ ] Проверить адаптивность: широкая, средняя и узкая ширина iframe; без горизонтального scroll страницы, кроме внутреннего scroll таблицы.
-- [ ] Сохранить полезные Bitrix24 UI-паттерны из текущего `dashboard-app/` и reference `templates-dashboard-vue/`, но не оставлять demo-контент.
-- [ ] Соблюсти визуальный стиль: рабочий плотный интерфейс, светлая нейтральная тема, карточки без вложенных карточек, без hero/маркетинговых блоков.
+- [x] Убрать с главного dashboard шаблонные действия, не входящие в MVP: feedback, add mail, add customer.
+- [x] Добавить заголовок «Дашборд воронки продаж» и вторичную строку с выбранной воронкой, периодом и timezone портала.
+- [x] Добавить фильтр воронки, периода и валюты; не показывать «Все воронки».
+- [x] Добавить refresh icon button.
+- [x] Отобразить 5 KPI-карточек с корректными денежными списками по валютам.
+- [x] Реализовать `StageFunnel.vue` как собственный Vue/SVG или HTML/SVG-компонент без тяжёлой новой библиотеки.
+- [x] Реализовать `TrendChart.vue` на Unovis.
+- [x] Реализовать `RecentDealsTable.vue` на TanStack Table, 15 строк, `createdAt desc`, fallback `assignedById`.
+- [x] Открывать карточку сделки по клику через Bitrix24 SDK или доступный `dealUrl`; не показывать write actions.
+- [x] Показать warnings: partial aggregation, incomplete financial data, missing users, unknown stage semantics.
+- [x] Реализовать skeleton, empty dashboard, no recent deals, no stages, access/session/errors.
+- [x] Проверить адаптивность: широкая, средняя и узкая ширина iframe; без горизонтального scroll страницы, кроме внутреннего scroll таблицы.
+- [x] Сохранить полезные Bitrix24 UI-паттерны из текущего `dashboard-app/` и reference `templates-dashboard-vue/`, но не оставлять demo-контент.
+- [x] Соблюсти визуальный стиль: рабочий плотный интерфейс, светлая нейтральная тема, карточки без вложенных карточек, без hero/маркетинговых блоков.
 
 **Критерии готовности:**
 - Основной экран соответствует структуре из `docs/05-ui-brief.md`.
@@ -501,6 +501,12 @@
 - Слишком плотный UI может потерять читаемость на узком iframe.
 - График и funnel могут иметь нечитаемые подписи при длинных названиях стадий.
 - Bitrix24 UI components могут иметь ограничения по date range/custom picker.
+
+**Статус Phase 7 от 2026-07-23:**
+- Сделано: главный экран `dashboard-app/src/pages/index.vue` заменён на read-only sales funnel dashboard без template write/demo actions; добавлены фильтры воронки/периода/валюты, refresh, заголовок и контекст активных фильтров; добавлены KPI, warnings, funnel, trend chart, recent deals table, skeleton, empty/no-data/error states.
+- Изменены файлы: `dashboard-app/src/pages/index.vue`, `dashboard-app/src/assets/css/main.css`, `dashboard-app/src/locales/ru.json`; созданы `dashboard-app/src/components/dashboard/DashboardFilters.vue`, `KpiCards.vue`, `StageFunnel.vue`, `TrendChart.vue`, `RecentDealsTable.vue`, `DashboardWarnings.vue`, `DashboardEmptyState.vue`, `DashboardErrorState.vue`, `DashboardSkeleton.vue`, `dashboardViewModel.ts`, `__tests__/dashboardViewModel.test.ts`; обновлён этот план.
+- Пройдены тесты: TDD RED подтверждён падением нового `dashboardViewModel.test.ts` до реализации; затем `pnpm vitest run src/components/dashboard/__tests__/dashboardViewModel.test.ts` — 5/5; `pnpm run test` — 47/47; `pnpm run typecheck`; `pnpm run lint`; `pnpm run build`.
+- Остались риски: Playwright/manual iframe screenshots не выполнены, потому что в `dashboard-app` нет установленного Playwright runner; адаптивность проверена кодом/CSS и сборкой, но требует визуального smoke на широкой, средней и узкой iframe-ширине в Phase 8/9. Build проходит с существующими Rollup warnings по `@vueuse/core` pure annotations и chunk size > 500 kB; это не блокирует Phase 7, но должно учитываться в Phase 9 quality gates.
 
 ## Phase 8. Cross-App Local Integration
 
