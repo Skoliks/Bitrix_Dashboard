@@ -4,11 +4,8 @@ import type { DropdownMenuItem } from '@bitrix24/b24ui-nuxt'
 import { useColorMode } from '@bitrix24/b24ui-nuxt/composables'
 import { computed } from 'vue'
 import { useB24 } from '../composables/useB24'
-import { TypeSpecificUrl } from '@bitrix24/b24jssdk'
 import Expand1Icon from '@bitrix24/b24icons-vue/actions/Expand1Icon'
 import PersonSettingsIcon from '@bitrix24/b24icons-vue/outline/PersonSettingsIcon'
-import CreditDebitCardIcon from '@bitrix24/b24icons-vue/main/CreditDebitCardIcon'
-import SettingsIcon from '@bitrix24/b24icons-vue/outline/SettingsIcon'
 import ScreenIcon from '@bitrix24/b24icons-vue/outline/ScreenIcon'
 import SunIconAir from '@bitrix24/b24icons-vue/outline/SunIcon'
 import MoonIconAir from '@bitrix24/b24icons-vue/outline/MoonIcon'
@@ -94,7 +91,7 @@ const items = computed<DropdownMenuItem[]>(() => [
     avatar: user.value.avatar
   },
   {
-    label: 'Profile',
+    label: 'Профиль',
     icon: PersonSettingsIcon,
     onSelect() {
       if (isWeCanMakeOperationForCurrentUser()) {
@@ -106,44 +103,13 @@ const items = computed<DropdownMenuItem[]>(() => [
     }
   },
   {
-    label: 'Billing',
-    icon: CreditDebitCardIcon,
-    onSelect() {
-      if (isWeCanMakeOperationForCurrentUser()) {
-        if (b24Helper?.isSelfHosted) {
-          $b24.slider.openPath(
-            $b24.slider.getUrl(`/bitrix/admin/update_system.php`),
-            1950
-          )
-        } else {
-          $b24.slider.openPath(
-            $b24.slider.getUrl(`/settings/order/`),
-            950
-          )
-        }
-      }
-    }
-  },
-  {
-    label: 'Settings',
-    icon: SettingsIcon,
-    onSelect() {
-      if (isWeCanMakeOperationForCurrentUser()) {
-        $b24.slider.openPath(
-          $b24.slider.getUrl(b24Helper?.b24SpecificUrl[TypeSpecificUrl.MainSettings]),
-          950
-        )
-      }
-    }
-  },
-  {
     type: 'separator'
   },
   {
-    label: 'Appearance',
+    label: 'Тема',
     children: [
       {
-        label: 'System',
+        label: 'Системная',
         icon: ScreenIcon,
         type: 'checkbox',
         checked: colorMode.preference === 'system',
@@ -153,7 +119,7 @@ const items = computed<DropdownMenuItem[]>(() => [
         }
       },
       {
-        label: 'Light',
+        label: 'Светлая',
         icon: SunIconAir,
         type: 'checkbox',
         checked: colorMode.preference === 'light',
@@ -163,7 +129,7 @@ const items = computed<DropdownMenuItem[]>(() => [
         }
       },
       {
-        label: 'Dark',
+        label: 'Тёмная',
         icon: MoonIconAir,
         type: 'checkbox',
         checked: colorMode.preference === 'dark',
@@ -177,44 +143,6 @@ const items = computed<DropdownMenuItem[]>(() => [
         }
       }
     ]
-  },
-  {
-    type: 'separator'
-  },
-  {
-    label: 'Templates',
-    children: [
-      {
-        label: 'Starter',
-        to: 'https://bitrix24.github.io/starter-b24ui-vue/',
-        target: '_blank'
-      },
-      {
-        label: 'Dashboard',
-        to: 'https://github.com/Skoliks/Bitrix_Dashboard',
-        target: '_blank',
-        checked: true,
-        type: 'checkbox'
-      }
-    ]
-  },
-  {
-    type: 'separator'
-  },
-  {
-    label: 'B24 UI',
-    to: 'https://bitrix24.github.io/b24ui/',
-    target: '_blank'
-  },
-  {
-    label: 'B24 JsSdk',
-    to: 'https://bitrix24.github.io/b24jssdk/',
-    target: '_blank'
-  },
-  {
-    label: 'B24 Icons',
-    to: 'https://bitrix24.github.io/b24icons/',
-    target: '_blank'
   }
 ])
 </script>

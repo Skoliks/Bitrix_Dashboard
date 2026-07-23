@@ -41,6 +41,7 @@ export interface DashboardQueries {
   openCreated: AggregateQuery
   won: AggregateQuery
   funnel: AggregateQuery
+  moneyKpi: SearchQuery
   trendCreated: SearchQuery
   trendWon: SearchQuery
   recentDeals: SearchQuery
@@ -61,6 +62,7 @@ const recentDealSelect = [
 ]
 
 const trendDealSelect = ['id', 'amount', 'currency', 'stageId', 'createdAt', 'closedAt', 'stageSemanticId']
+const moneyKpiSelect = ['id', 'amount', 'currency', 'stageId', 'closedAt', 'stageSemanticId']
 
 export const buildDashboardQueries = (input: QueryInput): DashboardQueries => ({
   openNow: {
@@ -85,6 +87,14 @@ export const buildDashboardQueries = (input: QueryInput): DashboardQueries => ({
     op: 'count',
     groupBy: ['stageId'],
     filter: baseFilter(input, { dateField: 'createdAt' })
+  },
+  moneyKpi: {
+    filter: baseFilter(input, {
+      stageSemanticId: 'S',
+      dateField: 'closedAt'
+    }),
+    limit: 500,
+    select: moneyKpiSelect
   },
   trendCreated: {
     filter: baseFilter(input, { dateField: 'createdAt' }),

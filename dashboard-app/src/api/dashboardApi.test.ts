@@ -63,4 +63,10 @@ describe('dashboard api', () => {
     expect(bootstrap.categories.length).toBeGreaterThan(0)
     expect(dashboard.filters.currency).toBe('RUB')
   })
+
+  it('rejects mock dashboard mode in production', () => {
+    expect(() => createDashboardApi({ fetchImpl: vi.fn(), mockMode: true, productionMode: true })).toThrow(
+      'Dashboard mock mode is disabled in production.'
+    )
+  })
 })

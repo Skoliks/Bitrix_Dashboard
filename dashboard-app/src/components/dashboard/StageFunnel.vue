@@ -8,10 +8,11 @@ const props = defineProps<{
   stages: DashboardResponse['stageFunnel']
   references: Pick<BootstrapResponse, 'stages' | 'currencies'>
   categoryId: number
+  meta?: DashboardResponse['meta']
   loading?: boolean
 }>()
 
-const rows = computed(() => buildStageRows(props.stages, props.references.stages, props.references.currencies, props.categoryId))
+const rows = computed(() => buildStageRows(props.stages, props.references.stages, props.references.currencies, props.categoryId, props.meta))
 const maxCount = computed(() => Math.max(1, ...rows.value.map(row => row.count)))
 </script>
 
@@ -48,6 +49,7 @@ const maxCount = computed(() => Math.max(1, ...rows.value.map(row => row.count))
         </div>
         <div v-if="row.money.length" class="dashboard-funnel-money">
           <span v-for="line in row.money" :key="line">{{ line }}</span>
+          <span v-if="row.moneyDescription" class="dashboard-muted">{{ row.moneyDescription }}</span>
         </div>
       </div>
     </div>

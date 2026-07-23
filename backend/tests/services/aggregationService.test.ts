@@ -65,8 +65,13 @@ describe('aggregation service', () => {
         funnel: aggregateCount(3, [
           { stageId: 'NEW', count: 2, aggregates: {} },
           { stageId: 'WON', count: 1, aggregates: {} }
-        ])
+        ]),
+        moneyKpi: aggregateCount(2)
       },
+      moneyKpiDeals: [
+        deal({ id: 7, stageId: 'WON', stageSemanticId: 'S', amount: 300, currency: 'RUB', closedAt: '2026-07-04T10:00:00.000Z' }),
+        deal({ id: 8, stageId: 'WON', stageSemanticId: 'S', amount: 50, currency: 'USD', closedAt: '2026-07-05T10:00:00.000Z' })
+      ],
       trendCreatedDeals: [
         deal({ id: 1, stageId: 'NEW', amount: 100, currency: 'RUB', createdAt: '2026-07-01T10:00:00.000Z' }),
         deal({ id: 2, stageId: 'NEW', amount: 50, currency: 'USD', createdAt: '2026-07-02T10:00:00.000Z' }),
@@ -206,6 +211,7 @@ describe('aggregation service', () => {
     const response = buildDashboardResponse({
       ...baseInput,
       aggregates: emptyAggregates(),
+      moneyKpiDeals: fullBatch,
       trendCreatedDeals: fullBatch,
       trendWonDeals: [],
       recentDeals: []
@@ -213,6 +219,7 @@ describe('aggregation service', () => {
 
     expect(response.warnings).toContainEqual({ code: 'PARTIAL_AGGREGATION' })
     expect(response.meta.truncatedBlocks).toContain('trendCreated')
+    expect(response.meta.truncatedBlocks).toContain('moneyKpi')
   })
 })
 
@@ -231,5 +238,6 @@ const emptyAggregates = () => ({
   openNow: aggregateCount(0),
   openCreated: aggregateCount(0),
   won: aggregateCount(0),
-  funnel: aggregateCount(0)
+  funnel: aggregateCount(0),
+  moneyKpi: aggregateCount(0)
 })

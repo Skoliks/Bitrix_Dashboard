@@ -4,6 +4,7 @@ import RefreshIcon from '@bitrix24/b24icons-vue/outline/RefreshIcon'
 defineProps<{
   title?: string
   description?: string
+  requestId?: string
   loading?: boolean
 }>()
 
@@ -17,6 +18,9 @@ const emit = defineEmits<{
     <div class="dashboard-state">
       <h2>{{ title ?? 'Дашборд недоступен' }}</h2>
       <p>{{ description ?? 'Не удалось загрузить данные. Повторите запрос или проверьте доступ к CRM.' }}</p>
+      <p v-if="requestId" class="dashboard-muted">
+        ID запроса: {{ requestId }}
+      </p>
       <B24Button
         :icon="RefreshIcon"
         color="air-primary"

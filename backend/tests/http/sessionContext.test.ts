@@ -4,6 +4,8 @@ import { createHmac } from 'node:crypto'
 import { readSessionContext } from '../../src/session/context.js'
 
 describe('session context', () => {
+  const now = new Date('2026-07-23T00:00:00.000Z')
+
   it('reads provisional session headers only in provisional mode', () => {
     const context = readSessionContext(new Request('http://localhost/api', {
       headers: {
@@ -37,7 +39,7 @@ describe('session context', () => {
     const sessionToken = 'vibe_session_secret'
     const portalDomain = 'portal.bitrix24.com'
     const userId = '42'
-    const issuedAt = '1784770000'
+    const issuedAt = String(Math.floor(now.getTime() / 1000))
     const signature = createHmac('sha256', 'server-secret')
       .update(`${sessionToken}\n${portalDomain}\n${userId}\n${issuedAt}`)
       .digest('hex')
@@ -50,7 +52,7 @@ describe('session context', () => {
         'x-vibecode-session-issued-at': issuedAt,
         'x-vibecode-session-signature': `sha256=${signature}`
       }
-    }), { mode: 'signed-headers', hmacSecret: 'server-secret' })
+    }), { mode: 'signed-headers', hmacSecret: 'server-secret', now })
 
     expect(context).toEqual({
       sessionToken,
@@ -59,5 +61,52 @@ describe('session context', () => {
         userId
       }
     })
+  })
+
+  it.each([
+    ['expired issuedAt', '2026-07-22T23:49:59.000Z'],
+    ['future issuedAt outside skew', '2026-07-23T00:05:01.000Z']
+  ])('rejects signed gateway handoff with %s', (_caseName, issuedAtDate) => {
+    const sessionToken = 'vibe_session_secret'
+    const portalDomain = 'portal.bitrix24.com'
+    const userId = '42'
+    const issuedAt = String(Math.floor(new Date(issuedAtDate).getTime() / 1000))
+    const signature = createHmac('sha256', 'server-secret')
+      .update(`${sessionToken}\n${portalDomain}\n${userId}\n${issuedAt}`)
+      .digest('hex')
+
+    const context = readSessionContext(new Request('http://localhost/api', {
+      headers: {
+        'x-vibecode-session-token': sessionToken,
+        'x-vibecode-portal-domain': portalDomain,
+        'x-vibecode-user-id': userId,
+        'x-vibecode-session-issued-at': issuedAt,
+        'x-vibecode-session-signature': `sha256=${signature}`
+      }
+    }), { mode: 'signed-headers', hmacSecret: 'server-secret', now, signedHeaderMaxAgeSeconds: 600, signedHeaderClockSkewSeconds: 300 })
+
+    expect(context).toEqual({ publicContext: {} })
+  })
+
+  it('rejects signed gateway handoff with malformed issuedAt', () => {
+    const sessionToken = 'vibe_session_secret'
+    const portalDomain = 'portal.bitrix24.com'
+    const userId = '42'
+    const issuedAt = 'not-a-timestamp'
+    const signature = createHmac('sha256', 'server-secret')
+      .update(`${sessionToken}\n${portalDomain}\n${userId}\n${issuedAt}`)
+      .digest('hex')
+
+    const context = readSessionContext(new Request('http://localhost/api', {
+      headers: {
+        'x-vibecode-session-token': sessionToken,
+        'x-vibecode-portal-domain': portalDomain,
+        'x-vibecode-user-id': userId,
+        'x-vibecode-session-issued-at': issuedAt,
+        'x-vibecode-session-signature': `sha256=${signature}`
+      }
+    }), { mode: 'signed-headers', hmacSecret: 'server-secret', now })
+
+    expect(context).toEqual({ publicContext: {} })
   })
 })

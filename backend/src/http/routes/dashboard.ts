@@ -55,11 +55,12 @@ export const handleDashboard = async (
   })
   const requestContext = { sessionToken: session.sessionToken }
 
-  const [openNow, openCreated, won, funnel, trendCreatedDeals, trendWonDeals, recentDeals] = await Promise.all([
+  const [openNow, openCreated, won, funnel, moneyKpiDeals, trendCreatedDeals, trendWonDeals, recentDeals] = await Promise.all([
     client.aggregateDeals({ ...requestContext, body: queries.openNow }),
     client.aggregateDeals({ ...requestContext, body: queries.openCreated }),
     client.aggregateDeals({ ...requestContext, body: queries.won }),
     client.aggregateDeals({ ...requestContext, body: queries.funnel }),
+    client.searchDeals({ ...requestContext, body: queries.moneyKpi }),
     client.searchDeals({ ...requestContext, body: queries.trendCreated }),
     client.searchDeals({ ...requestContext, body: queries.trendWon }),
     client.searchDeals({ ...requestContext, body: queries.recentDeals })
@@ -80,8 +81,10 @@ export const handleDashboard = async (
       openNow,
       openCreated,
       won,
-      funnel
+      funnel,
+      moneyKpi: won
     },
+    moneyKpiDeals,
     trendCreatedDeals,
     trendWonDeals,
     recentDeals

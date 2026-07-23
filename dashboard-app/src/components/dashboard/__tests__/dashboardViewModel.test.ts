@@ -7,6 +7,7 @@ import {
   buildKpiCards,
   buildPeriodOptions,
   buildRecentDealRows,
+  buildDashboardErrorState,
   buildStageRows,
   buildWarningMessages,
   canApplyCustomPeriod
@@ -81,13 +82,23 @@ describe('dashboard view model', () => {
   })
 
   it('keeps KPI money values split by currency', () => {
-    const cards = buildKpiCards(dashboard.kpi, bootstrap.currencies)
+    const cards = buildKpiCards(dashboard.kpi, bootstrap.currencies, dashboard.meta)
 
     expect(cards).toHaveLength(5)
     expect(cards[3]?.value).toBe('120 000 ₽')
     expect(cards[4]?.value).toBe('60 000 ₽')
     expect(cards[3]?.money).toEqual(['120 000 ₽', '$900'])
     expect(cards[4]?.money).toEqual(['60 000 ₽', '$450'])
+  })
+
+  it('marks monetary KPI cards when bounded search makes values partial', () => {
+    const cards = buildKpiCards(dashboard.kpi, bootstrap.currencies, {
+      ...dashboard.meta,
+      truncatedBlocks: ['moneyKpi']
+    })
+
+    expect(cards[3]?.description).toContain('частично')
+    expect(cards[4]?.description).toContain('частично')
   })
 
   it('refreshes non-custom filter changes but waits for valid custom dates', () => {
@@ -108,13 +119,17 @@ describe('dashboard view model', () => {
   })
 
   it('includes zero-count stages in funnel rows', () => {
-    const rows = buildStageRows(dashboard.stageFunnel, bootstrap.stages, bootstrap.currencies)
+    const rows = buildStageRows(dashboard.stageFunnel, bootstrap.stages, bootstrap.currencies, 0, {
+      ...dashboard.meta,
+      truncatedBlocks: ['trendCreated']
+    })
 
     expect(rows.map(row => [row.stageId, row.count])).toEqual([
       ['NEW', 4],
       ['PROPOSAL', 0],
       ['WON', 1]
     ])
+    expect(rows[0]?.moneyDescription).toContain('частично')
   })
 
   it('sorts recent deals by createdAt desc and falls back to assignedById', () => {
@@ -132,5 +147,14 @@ describe('dashboard view model', () => {
       expect.objectContaining({ code: 'USERS_UNAVAILABLE', title: 'Имена ответственных недоступны' }),
       expect.objectContaining({ code: 'PARTIAL_AGGREGATION', description: expect.stringContaining('15 из 20') })
     ])
+  })
+
+  it('extracts request id for user-visible error state', () => {
+    const error = Object.assign(new Error('Request failed'), { requestId: 'req-123' })
+
+    expect(buildDashboardErrorState(error)).toEqual({
+      description: 'Request failed',
+      requestId: 'req-123'
+    })
   })
 })

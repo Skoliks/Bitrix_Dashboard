@@ -44,6 +44,16 @@ describe('deals query service', () => {
         currency: 'RUB'
       }
     })
+    expect(queries.moneyKpi).toMatchObject({
+      filter: {
+        categoryId: 0,
+        stageSemanticId: 'S',
+        closedAt: { $gte: range.startAt, $lte: range.endAt },
+        currency: 'RUB'
+      },
+      limit: 500,
+      select: ['id', 'amount', 'currency', 'stageId', 'closedAt', 'stageSemanticId']
+    })
     expect(queries.trendCreated.filter).toHaveProperty('createdAt')
     expect(queries.trendWon.filter).toHaveProperty('closedAt')
     expect(queries.trendCreated).toMatchObject({

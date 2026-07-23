@@ -6,10 +6,11 @@ import { buildKpiCards } from './dashboardViewModel'
 const props = defineProps<{
   kpi: DashboardResponse['kpi']
   currencies: BootstrapResponse['currencies']
+  meta?: DashboardResponse['meta']
   loading?: boolean
 }>()
 
-const cards = computed(() => buildKpiCards(props.kpi, props.currencies))
+const cards = computed(() => buildKpiCards(props.kpi, props.currencies, props.meta))
 </script>
 
 <template>

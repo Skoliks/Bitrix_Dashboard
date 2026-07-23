@@ -52,8 +52,12 @@ describe('http app', () => {
     const body = await response.text()
 
     expect(response.status).toBe(503)
+    expect(response.headers.get('x-request-id')).toMatch(/[a-f0-9-]{36}/)
     expect(JSON.parse(body)).toMatchObject({
-      error: { code: 'VALIDATION_ERROR' }
+      error: {
+        code: 'VALIDATION_ERROR',
+        requestId: response.headers.get('x-request-id')
+      }
     })
     expect(body).not.toContain('vibe_app_')
   })

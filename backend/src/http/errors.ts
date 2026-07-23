@@ -30,14 +30,15 @@ export interface ErrorResponse {
   body: ApiErrorBody
 }
 
-export const toErrorResponse = (error: unknown): ErrorResponse => {
+export const toErrorResponse = (error: unknown, requestId?: string): ErrorResponse => {
   if (error instanceof AppError) {
     return {
       status: error.status,
       body: {
         error: {
           code: error.code,
-          message: defaultMessages[error.code]
+          message: defaultMessages[error.code],
+          ...(requestId ? { requestId } : {})
         }
       }
     }
@@ -48,14 +49,15 @@ export const toErrorResponse = (error: unknown): ErrorResponse => {
     body: {
       error: {
         code: 'UNKNOWN',
-        message: defaultMessages.UNKNOWN
+        message: defaultMessages.UNKNOWN,
+        ...(requestId ? { requestId } : {})
       }
     }
   }
 }
 
-export const jsonErrorResponse = (error: unknown, headers: Headers): Response => {
-  const mapped = toErrorResponse(error)
+export const jsonErrorResponse = (error: unknown, headers: Headers, requestId?: string): Response => {
+  const mapped = toErrorResponse(error, requestId)
   return Response.json(mapped.body, {
     status: mapped.status,
     headers

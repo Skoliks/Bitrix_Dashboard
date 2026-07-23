@@ -14,8 +14,7 @@ import KpiCards from '../components/dashboard/KpiCards.vue'
 import RecentDealsTable from '../components/dashboard/RecentDealsTable.vue'
 import StageFunnel from '../components/dashboard/StageFunnel.vue'
 import TrendChart from '../components/dashboard/TrendChart.vue'
-import { describeFilters, type RecentDealRowView } from '../components/dashboard/dashboardViewModel'
-import Market1Icon from '@bitrix24/b24icons-vue/main/Market1Icon'
+import { buildDashboardErrorState, describeFilters, type RecentDealRowView } from '../components/dashboard/dashboardViewModel'
 
 const { t } = useI18n()
 useHead({ title: t('page.index.seo.title') })
@@ -35,6 +34,7 @@ const subtitle = computed(() => dashboard.value
   ? describeFilters(dashboard.value.filters, dashboard.value.references)
   : 'Основная воронка · Последние 30 дней · Все валюты'
 )
+const blockingError = computed(() => buildDashboardErrorState(salesDashboard.error.value))
 const hasDashboardData = computed(() => {
   const data = dashboard.value
   if (!data) {
@@ -86,19 +86,7 @@ onMounted(() => {
 <template>
   <B24DashboardPanel id="sales-dashboard" :b24ui="{ body: 'p-4 sm:p-5 scrollbar-transparent overflow-x-hidden' }">
     <template #header>
-      <B24DashboardNavbar :title="t('page.index.seo.title')">
-        <template #right>
-          <B24Button
-            v-if="!isUseB24"
-            size="sm"
-            to="/install"
-            label="Install"
-            color="air-boost"
-            :icon="Market1Icon"
-            :b24ui="{ label: 'hidden sm:block', baseLine: 'ps-[5px] pe-[5px] sm:pe-[9px]' }"
-          />
-        </template>
-      </B24DashboardNavbar>
+      <B24DashboardNavbar :title="t('page.index.seo.title')" />
     </template>
 
     <template #body>
@@ -114,7 +102,8 @@ onMounted(() => {
 
         <DashboardErrorState
           v-if="salesDashboard.status.value === 'error' && !dashboard"
-          :description="salesDashboard.error.value?.message"
+          :description="blockingError.description"
+          :request-id="blockingError.requestId"
           :loading="salesDashboard.isRefreshing.value"
           @retry="refreshDashboard()"
         />
@@ -130,7 +119,8 @@ onMounted(() => {
           <DashboardErrorState
             v-if="salesDashboard.status.value === 'error'"
             title="Не удалось обновить данные"
-            :description="salesDashboard.error.value?.message"
+            :description="blockingError.description"
+            :request-id="blockingError.requestId"
             :loading="salesDashboard.isRefreshing.value"
             @retry="refreshDashboard()"
           />
@@ -143,6 +133,7 @@ onMounted(() => {
             <KpiCards
               :kpi="dashboard.kpi"
               :currencies="dashboard.references.currencies"
+              :meta="dashboard.meta"
               :loading="salesDashboard.isRefreshing.value"
             />
 
@@ -151,6 +142,7 @@ onMounted(() => {
                 :stages="dashboard.stageFunnel"
                 :references="dashboard.references"
                 :category-id="dashboard.filters.categoryId"
+                :meta="dashboard.meta"
                 :loading="salesDashboard.isRefreshing.value"
               />
               <TrendChart

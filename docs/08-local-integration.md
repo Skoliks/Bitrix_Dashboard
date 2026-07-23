@@ -10,7 +10,7 @@ This run connects `dashboard-app/` to the local `backend/` through the Vite dev 
 
 ## Backend env keys
 
-Create `backend/.env` from `backend/.env.example` and set values locally. Do not commit real values. Prefer copying the example file; do not create `.env` with Windows PowerShell `Set-Content -Encoding UTF8` in Windows PowerShell 5, because it writes a BOM and Node can treat the first key as a different name.
+Create `backend/.env` from `backend/.env.development.example` and set values locally. Do not commit real values. Prefer copying the example file; do not create `.env` with Windows PowerShell `Set-Content -Encoding UTF8` in Windows PowerShell 5, because it writes a BOM and Node can treat the first key as a different name.
 
 - `VIBECODE_APP_KEY`
 - `VIBECODE_API_BASE_URL`
@@ -56,7 +56,7 @@ Terminal 1:
 
 ```powershell
 cd backend
-Copy-Item .env.example .env
+Copy-Item .env.development.example .env
 pnpm run dev:local
 ```
 

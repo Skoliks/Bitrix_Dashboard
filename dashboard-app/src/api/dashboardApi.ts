@@ -12,6 +12,7 @@ export interface DashboardApiOptions {
   baseUrl?: string
   fetchImpl?: FetchLike
   mockMode?: boolean
+  productionMode?: boolean
 }
 
 export class DashboardApiError extends Error {
@@ -32,6 +33,11 @@ export const createDashboardApi = (options: DashboardApiOptions = {}): Dashboard
   const fetchImpl = options.fetchImpl ?? fetch
   const baseUrl = options.baseUrl ?? import.meta.env.VITE_BFF_BASE_URL ?? ''
   const mockMode = options.mockMode ?? import.meta.env.VITE_DASHBOARD_MOCK_MODE === 'true'
+  const productionMode = options.productionMode ?? import.meta.env.PROD
+
+  if (mockMode && productionMode) {
+    throw new Error('Dashboard mock mode is disabled in production.')
+  }
 
   if (mockMode) {
     return {

@@ -110,8 +110,8 @@ export const useB24 = () => {
       $b24Helper = getB24Helper()
       return set(b24)
     } catch (error) {
-      // `JSSDK_CLIENT_SIDE_WARNING` is the expected case when the app is opened
-      // outside the Bitrix24 frame (the install page guides the user from here).
+      // `JSSDK_CLIENT_SIDE_WARNING` is expected when the app is opened
+      // outside the Bitrix24 frame during local development.
       // Anything else is a real failure and must not be swallowed silently.
       if (!(error instanceof SdkError && error.code === 'JSSDK_CLIENT_SIDE_WARNING')) {
         buildLogger('useB24.init').error(error instanceof Error ? error.message : String(error))
@@ -140,9 +140,7 @@ export const useB24 = () => {
   function getRequiredRights(): string[] {
     return [
       'user_brief',
-      'crm',
-      'tasks',
-      'entity'
+      'crm'
     ]
   }
 

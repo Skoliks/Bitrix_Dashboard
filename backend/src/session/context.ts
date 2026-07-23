@@ -13,11 +13,17 @@ export interface SessionContext {
 export interface SessionContextConfig {
   mode: SessionContextMode
   hmacSecret?: string
+  now?: Date
+  signedHeaderMaxAgeSeconds?: number
+  signedHeaderClockSkewSeconds?: number
 }
+
+const defaultSignedHeaderMaxAgeSeconds = 600
+const defaultSignedHeaderClockSkewSeconds = 300
 
 export const readSessionContext = (request: Request, config: SessionContextConfig): SessionContext => {
   if (config.mode === 'signed-headers') {
-    return readSignedHeaders(request, config.hmacSecret)
+    return readSignedHeaders(request, config)
   }
 
   return readProvisionalHeaders(request)
@@ -38,8 +44,8 @@ const readProvisionalHeaders = (request: Request): SessionContext => {
   }
 }
 
-const readSignedHeaders = (request: Request, hmacSecret: string | undefined): SessionContext => {
-  if (!hmacSecret) {
+const readSignedHeaders = (request: Request, config: SessionContextConfig): SessionContext => {
+  if (!config.hmacSecret) {
     return emptyContext()
   }
 
@@ -53,7 +59,11 @@ const readSignedHeaders = (request: Request, hmacSecret: string | undefined): Se
     return emptyContext()
   }
 
-  const expected = createHmac('sha256', hmacSecret)
+  if (!isFreshIssuedAt(issuedAt, config)) {
+    return emptyContext()
+  }
+
+  const expected = createHmac('sha256', config.hmacSecret)
     .update(`${sessionToken}\n${portalDomain}\n${userId}\n${issuedAt}`)
     .digest('hex')
 
@@ -68,6 +78,22 @@ const readSignedHeaders = (request: Request, hmacSecret: string | undefined): Se
       userId
     }
   }
+}
+
+const isFreshIssuedAt = (issuedAt: string, config: SessionContextConfig): boolean => {
+  if (!/^\d+$/.test(issuedAt)) {
+    return false
+  }
+
+  const issuedAtMs = Number(issuedAt) * 1000
+  if (!Number.isSafeInteger(issuedAtMs)) {
+    return false
+  }
+
+  const nowMs = (config.now ?? new Date()).getTime()
+  const maxAgeMs = (config.signedHeaderMaxAgeSeconds ?? defaultSignedHeaderMaxAgeSeconds) * 1000
+  const skewMs = (config.signedHeaderClockSkewSeconds ?? defaultSignedHeaderClockSkewSeconds) * 1000
+  return issuedAtMs >= nowMs - maxAgeMs && issuedAtMs <= nowMs + skewMs
 }
 
 const matchesSignature = (signature: string, expected: string): boolean => {

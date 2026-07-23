@@ -256,7 +256,7 @@ const signedHeaders = () => {
   const sessionToken = 'vibe_session_secret'
   const portalDomain = 'portal.bitrix24.com'
   const userId = '42'
-  const issuedAt = '1784770000'
+  const issuedAt = String(Math.floor(Date.now() / 1000))
   const signature = createHmac('sha256', 'server-secret')
     .update(`${sessionToken}\n${portalDomain}\n${userId}\n${issuedAt}`)
     .digest('hex')

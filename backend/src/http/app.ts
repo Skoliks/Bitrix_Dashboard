@@ -1,3 +1,5 @@
+import { randomUUID } from 'node:crypto'
+
 import { getConfigValidationError, loadConfig, type ConfigResult, type PublicConfig } from '../config.js'
 import { createLogger } from '../logging/logger.js'
 import { createReferenceDataService, type ReferenceDataService } from '../services/referenceDataService.js'
@@ -27,6 +29,8 @@ export const createApp = (env: Record<string, string | undefined> = process.env,
   return {
     async fetch(request: Request): Promise<Response> {
       const headers = new Headers({ 'content-type': 'application/json; charset=utf-8' })
+      const requestId = request.headers.get('x-request-id')?.trim() || randomUUID()
+      headers.set('x-request-id', requestId)
       applySecurityHeaders(headers, {
         allowedOrigins: publicConfig.allowedOrigins,
         appPublicUrl: publicConfig.appPublicUrl
@@ -80,8 +84,8 @@ export const createApp = (env: Record<string, string | undefined> = process.env,
 
         throw new AppError('VALIDATION_ERROR', 'Route not found.', 404)
       } catch (error) {
-        logger.warn('Request failed', { error })
-        return jsonErrorResponse(error, headers)
+        logger.warn('Request failed', { error, requestId })
+        return jsonErrorResponse(error, headers, requestId)
       }
     }
   }

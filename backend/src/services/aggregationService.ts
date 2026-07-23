@@ -20,7 +20,9 @@ interface AggregationInput {
     openCreated: AggregateData
     won: AggregateData
     funnel: AggregateData
+    moneyKpi?: AggregateData
   }
+  moneyKpiDeals?: Deal[]
   trendCreatedDeals: Deal[]
   trendWonDeals: Deal[]
   recentDeals: Deal[]
@@ -45,8 +47,9 @@ export const buildDashboardResponse = (input: AggregationInput): DashboardRespon
     warnings.add('UNKNOWN_STAGE_SEMANTICS')
   }
 
-  const wonMoney = collectMoney(input.trendWonDeals, warnings)
-  const wonCountByCurrency = countByCurrency(input.trendWonDeals)
+  const moneyKpiDeals = input.moneyKpiDeals ?? input.trendWonDeals
+  const wonMoney = collectMoney(moneyKpiDeals, warnings)
+  const wonCountByCurrency = countByCurrency(moneyKpiDeals)
   const createdMoneyByStage = collectMoneyByStage(input.trendCreatedDeals, warnings)
 
   return {
@@ -225,6 +228,9 @@ const boundedSearchBlocks = (input: AggregationInput): string[] => {
   }
   if (input.trendWonDeals.length >= 500) {
     blocks.push('trendWon')
+  }
+  if ((input.moneyKpiDeals ?? []).length >= 500) {
+    blocks.push('moneyKpi')
   }
   return blocks
 }

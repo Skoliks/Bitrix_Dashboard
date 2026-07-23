@@ -1,4 +1,5 @@
 import { describe, expect, it } from 'vitest'
+import { readFileSync } from 'node:fs'
 
 import { getConfigValidationError, loadConfig } from '../../src/config.js'
 
@@ -79,5 +80,13 @@ describe('loadConfig', () => {
 
     expect(config.isValid).toBe(false)
     expect(getConfigValidationError(config).code).toBe('VALIDATION_ERROR')
+  })
+
+  it('keeps the default env example production safe', () => {
+    const envExample = readFileSync(new URL('../../.env.example', import.meta.url), 'utf8')
+
+    expect(envExample).toContain('NODE_ENV=production')
+    expect(envExample).toContain('SESSION_CONTEXT_MODE=signed-headers')
+    expect(envExample).not.toContain('SESSION_CONTEXT_MODE=provisional-headers')
   })
 })

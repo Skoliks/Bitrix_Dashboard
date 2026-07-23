@@ -48,6 +48,7 @@ export interface StageRowView {
   color?: string
   semantic: string | null
   money: string[]
+  moneyDescription?: string
 }
 
 export interface RecentDealRowView {
@@ -66,9 +67,15 @@ export interface WarningMessageView {
   description: string
 }
 
+export interface DashboardErrorView {
+  description?: string
+  requestId?: string
+}
+
 export const buildKpiCards = (
   kpi: DashboardResponse['kpi'],
-  currencies: BootstrapResponse['currencies']
+  currencies: BootstrapResponse['currencies'],
+  meta?: DashboardResponse['meta']
 ): KpiCardView[] => [
   {
     key: 'openNow',
@@ -92,28 +99,35 @@ export const buildKpiCards = (
     key: 'wonAmount',
     title: 'Сумма выигранных',
     value: firstMoneyOrZero(kpi.wonAmountByCurrency, currencies),
-    description: 'Валюты не объединяются',
+    description: isMoneyKpiPartial(meta) ? 'Рассчитано частично, валюты не объединяются' : 'Валюты не объединяются',
     money: formatMoneyList(kpi.wonAmountByCurrency, currencies)
   },
   {
     key: 'averageWon',
     title: 'Средний чек',
     value: firstMoneyOrZero(kpi.averageWonAmountByCurrency, currencies),
-    description: 'По выигранным сделкам',
+    description: isMoneyKpiPartial(meta) ? 'Рассчитано частично по выигранным сделкам' : 'По выигранным сделкам',
     money: formatMoneyList(kpi.averageWonAmountByCurrency, currencies)
   }
 ]
+
+const isMoneyKpiPartial = (meta?: DashboardResponse['meta']): boolean =>
+  meta?.truncatedBlocks.includes('moneyKpi') ?? false
 
 export const buildStageRows = (
   stageFunnel: DashboardResponse['stageFunnel'],
   stages: BootstrapResponse['stages'],
   currencies: BootstrapResponse['currencies'],
-  categoryId = 0
+  categoryId = 0,
+  meta?: DashboardResponse['meta']
 ): StageRowView[] => {
   const byStageId = new Map(stageFunnel.map(stage => [stage.stageId, stage]))
   const availableStages = stages
     .filter(stage => stage.categoryId === undefined || stage.categoryId === categoryId)
     .sort((left, right) => left.sort - right.sort || left.id.localeCompare(right.id))
+  const moneyDescription = meta?.truncatedBlocks.includes('trendCreated')
+    ? 'Денежные суммы рассчитаны частично'
+    : undefined
 
   return availableStages.map(stage => {
     const aggregate = byStageId.get(stage.id)
@@ -124,10 +138,16 @@ export const buildStageRows = (
       share: aggregate?.share ?? 0,
       color: aggregate?.color ?? stage.color,
       semantic: aggregate?.semantic ?? stage.semantic,
-      money: formatMoneyList(aggregate?.amountsByCurrency ?? [], currencies)
+      money: formatMoneyList(aggregate?.amountsByCurrency ?? [], currencies),
+      ...(moneyDescription ? { moneyDescription } : {})
     }
   })
 }
+
+export const buildDashboardErrorState = (error: Error | null): DashboardErrorView => ({
+  ...(error?.message ? { description: error.message } : {}),
+  ...((error as (Error & { requestId?: string }) | null)?.requestId ? { requestId: (error as Error & { requestId: string }).requestId } : {})
+})
 
 export const buildRecentDealRows = (
   deals: DashboardResponse['recentDeals'],

@@ -553,6 +553,65 @@
 - Пройдены тесты и проверки: `backend` full `pnpm run test`; `dashboard-app` full `pnpm run test`; `pnpm run typecheck`, `pnpm run lint`, `pnpm run build` в `backend/` и `dashboard-app/`; manual smoke через frontend dev server: `GET /api/bootstrap` и `GET /api/dashboard` вернули JSON `401 AUTH_REQUIRED` от backend через Vite proxy без реальной VibeCode-сессии.
 - Остались риски: smoke не подтверждает реальные dashboard data без валидной VibeCode session; Vite proxy не заменяет production CORS/frame validation; frontend browser/network security проверена smoke-уровнем, без Playwright.
 
+## Phase 8.5. Security And Production Readiness Hardening
+
+**Цель:** закрыть audit findings после Phase 0-8 до запуска Phase 9 quality gates, чтобы Phase 9 проверяла уже production-ориентированную архитектуру, а не известные design gaps.
+
+**Файлы:**
+- Изменить: `backend/src/session/context.ts`
+- Изменить: `backend/tests/http/sessionContext.test.ts`
+- Изменить: `backend/tests/http/dashboard.test.ts`, если signed-mode сценарии требуют обновления
+- Изменить: `backend/.env.example` и/или создать production-safe env documentation в `docs/`
+- Изменить: `backend/src/services/dealsQueryService.ts`
+- Изменить: `backend/src/services/aggregationService.ts`
+- Изменить: `backend/tests/services/*` и `backend/tests/http/dashboard.test.ts`
+- Изменить: `dashboard-app/src/composables/useB24.ts`
+- Удалить или изолировать: `dashboard-app/src/composables/useDealStats/*`, `dashboard-app/src/components/home/*`, template routes/pages, если они входят в production import graph
+- Изменить: `dashboard-app/src/api/dashboardApi.ts`
+- Изменить: `dashboard-app/.env.example`
+- Создать или обновить: `docs/08.5-hardening-report.md`
+- Изменить: `docs/06-plan.md`
+
+**Работы:**
+- [x] Добавить freshness защиту signed session handoff: parse/validate `issuedAt`, TTL, clock-skew allowance, negative handling для expired/future/malformed timestamps.
+- [x] Явно описать production handoff boundary: кто создает signed headers/cookies, где хранится HMAC secret, какие headers являются trusted, какие user-supplied headers запрещены в production.
+- [x] Сделать env examples production-safe или разделить development/production examples, чтобы copy-paste в hosting не включал `SESSION_CONTEXT_MODE=provisional-headers`.
+- [x] Перевести monetary KPI на aggregate totals для сумм/средних по валютам и стадиям либо явно отделить partial values в DTO/UI.
+- [x] Убрать лишние requested scopes из frontend, оставить только подтвержденный минимум MVP.
+- [x] Удалить или скрыть template routes/demo/write-like surfaces из production dashboard surface.
+- [x] Удалить старый direct CRM data path (`useDealStats` и связанные home components) из production import graph.
+- [x] Запретить `VITE_DASHBOARD_MOCK_MODE=true` в production build/runtime.
+- [x] Добавить request/correlation id в backend error responses и logs, frontend должен показывать/хранить его без раскрытия internals.
+- [x] Зафиксировать все audit findings, принятые решения, измененные файлы, тесты и оставшиеся external blockers в `docs/08.5-hardening-report.md`.
+
+**Критерии готовности:**
+- Signed session headers имеют ограниченное окно действия и negative tests на replay-related cases.
+- Production path не зависит от client-supplied provisional auth headers.
+- Production env documentation не содержит опасных dev defaults.
+- Денежные KPI не выглядят как полные totals, если фактически рассчитаны из частичной выборки.
+- Frontend production surface не содержит не-MVP template pages/actions, лишних scopes, mock production mode и direct CRM SDK data calls.
+- Backend errors имеют request id, который можно сопоставить с sanitized logs.
+
+**Тесты:**
+- Backend unit/integration: valid signed handoff, expired `issuedAt`, future `issuedAt`, malformed `issuedAt`, missing HMAC secret, provisional headers rejected in production.
+- Backend dashboard tests: monetary totals/averages/funnel amounts не зависят от `searchDeals limit: 500` или явно помечены как partial.
+- Frontend tests/build guard: production mock mode rejected.
+- Static/import graph check или targeted tests: dashboard production entry не импортирует `useDealStats` и не вызывает прямые `crm.item.list`/Bitrix24 CRM data methods.
+- Scopes test: requested rights равны подтвержденному MVP minimum.
+- Full `pnpm run test`, `pnpm run typecheck`, `pnpm run lint`, `pnpm run build` в `backend/` и `dashboard-app/`.
+
+**Риски:**
+- Реальный production handoff может зависеть от Black Hole/VibeCode Gateway возможностей, которые нельзя полностью проверить локально.
+- Полные monetary aggregates могут потребовать уточнения VibeCode aggregate API contract или дополнительных запросов.
+- Удаление template routes может затронуть generated typed routes и layout assumptions.
+- Request id/log correlation должен остаться sanitized и не начать логировать CRM payloads или session tokens.
+
+**Статус Phase 8.5 от 2026-07-23:**
+- Сделано: закрыты audit findings по signed handoff freshness, production-safe env examples, request id, production mock guard, MVP scopes, template/demo route cleanup и legacy direct CRM path; для monetary KPI выбран подтвержденный текущим API путь explicit partial marking вместо неподдержанного `groupBy: currency`.
+- Изменены файлы: см. `docs/08.5-hardening-report.md`; `dashboard-app/src/route-map.d.ts` обновлен generated route tooling из-за удаления pages.
+- Пройдены тесты: TDD RED targeted падения подтверждены; targeted backend/frontend Phase 8.5 tests прошли; full `pnpm run test`, `pnpm run typecheck`, `pnpm run lint`, `pnpm run build` прошли в `backend/` и `dashboard-app/`.
+- Остались риски: real production handoff producer и HMAC secret delivery требуют проверки в Black Hole/VibeCode Gateway; полные monetary totals для больших воронок требуют API windowing или нового aggregate contract; frontend build все еще предупреждает о chunk > 500 kB.
+
 ## Phase 9. End-To-End Quality Gates
 
 **Цель:** пройти полный набор тестов, security checks, license checks и acceptance на тестовом портале до деплоя.
@@ -722,8 +781,9 @@
 4. Phase 6 migrates `dashboard-app/` to backend DTO and removes direct CRM data access for dashboard analytics.
 5. Phase 7 replaces template UI in `dashboard-app/` with the sales funnel dashboard while preserving useful Bitrix24 UI patterns.
 6. Phase 8 proves local integration between `dashboard-app/` and `backend/`.
-7. Phase 9 is mandatory before any deployment.
-8. Phases 10, 11 and 12 are final packaging, deployment and Bitrix24 placement phases.
+7. Phase 8.5 closes security, handoff, data-accuracy and production-surface audit findings before quality gates.
+8. Phase 9 is mandatory before any deployment.
+9. Phases 10, 11 and 12 are final packaging, deployment and Bitrix24 placement phases.
 
 ## MVP Completion Checklist
 
