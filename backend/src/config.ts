@@ -7,6 +7,7 @@ export type SessionContextMode = 'provisional-headers' | 'signed-headers'
 export interface PublicConfig {
   allowedOrigins: string[]
   appPublicUrl: string
+  deploymentVersion: string
   nodeEnv: RuntimeMode
   sessionContextMode: SessionContextMode
   logLevel: LogLevel
@@ -44,10 +45,12 @@ export const loadConfig = (env: Env = process.env): ConfigResult => {
   const sessionContextMode = readSessionContextMode(env, nodeEnv, errors)
   const sessionContextHmacSecret = readSessionContextHmacSecret(env, sessionContextMode, errors)
   const logLevel = readEnum(env.LOG_LEVEL, logLevels, 'info', 'LOG_LEVEL', errors)
+  const deploymentVersion = env.DEPLOYMENT_VERSION?.trim() || 'local'
   const port = readPort(env.PORT, errors)
 
   const publicConfig: Partial<PublicConfig> = {
     allowedOrigins,
+    deploymentVersion,
     nodeEnv,
     sessionContextMode,
     logLevel,
@@ -74,6 +77,7 @@ export const loadConfig = (env: Env = process.env): ConfigResult => {
     publicConfig: {
       allowedOrigins,
       appPublicUrl: appPublicUrl.origin,
+      deploymentVersion,
       nodeEnv,
       sessionContextMode,
       logLevel,

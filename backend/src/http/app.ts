@@ -3,6 +3,7 @@ import { randomUUID } from 'node:crypto'
 import { getConfigValidationError, loadConfig, type ConfigResult, type PublicConfig } from '../config.js'
 import { createLogger } from '../logging/logger.js'
 import { createReferenceDataService, type ReferenceDataService } from '../services/referenceDataService.js'
+import type { StaticAssetHandler } from '../static.js'
 import type { HealthResponse, ReadyResponse } from '../types/api.js'
 import { createVibeCodeClient, type VibeCodeClient } from '../vibecode/client.js'
 import { AppError, jsonErrorResponse } from './errors.js'
@@ -16,6 +17,7 @@ export interface App {
 
 interface AppOptions {
   referenceDataService?: ReferenceDataService
+  staticAssets?: StaticAssetHandler
   vibeCodeClient?: VibeCodeClient
 }
 
@@ -25,6 +27,7 @@ export const createApp = (env: Record<string, string | undefined> = process.env,
   const logger = createLogger(publicConfig.logLevel)
   const vibeCodeClient = options.vibeCodeClient ?? createDefaultVibeCodeClient(config)
   const referenceDataService = options.referenceDataService ?? createDefaultReferenceDataService(config, vibeCodeClient)
+  const staticAssets = options.staticAssets
 
   return {
     async fetch(request: Request): Promise<Response> {
@@ -43,7 +46,8 @@ export const createApp = (env: Record<string, string | undefined> = process.env,
         if (request.method === 'GET' && url.pathname === '/health') {
           return Response.json({
             status: 'ok',
-            service: 'dashboard-bitrix-backend'
+            service: 'dashboard-bitrix-backend',
+            version: publicConfig.deploymentVersion
           } satisfies HealthResponse, { status: 200, headers })
         }
 
@@ -82,6 +86,11 @@ export const createApp = (env: Record<string, string | undefined> = process.env,
           return await handleDashboard(request, referenceDataService, vibeCodeClient, headers, config.sessionContext)
         }
 
+        const staticResponse = await staticAssets?.(request, headers)
+        if (staticResponse) {
+          return staticResponse
+        }
+
         throw new AppError('VALIDATION_ERROR', 'Route not found.', 404)
       } catch (error) {
         logger.warn('Request failed', { error, requestId })
@@ -101,6 +110,7 @@ const ensureCorsAllowed = (request: Request, allowedOrigins: string[]): void => 
 const normalizePublicConfig = (config: ConfigResult): PublicConfig => ({
   allowedOrigins: config.publicConfig.allowedOrigins ?? [],
   appPublicUrl: config.publicConfig.appPublicUrl ?? 'http://localhost',
+  deploymentVersion: config.publicConfig.deploymentVersion ?? 'local',
   nodeEnv: config.publicConfig.nodeEnv ?? 'development',
   sessionContextMode: config.publicConfig.sessionContextMode ?? 'provisional-headers',
   logLevel: config.publicConfig.logLevel ?? 'info',

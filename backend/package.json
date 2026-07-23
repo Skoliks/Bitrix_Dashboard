@@ -6,8 +6,10 @@
   "scripts": {
     "dev": "tsx watch src/index.ts",
     "dev:local": "node --env-file-if-exists=.env --watch --import tsx src/index.ts",
-    "build": "tsc -p tsconfig.json",
+    "build": "powershell -NoProfile -ExecutionPolicy Bypass -Command \"if (Test-Path dist) { Remove-Item -Recurse -Force dist }; tsc -p tsconfig.build.json\"",
     "start": "node dist/index.js",
+    "build:production": "pnpm --dir ../dashboard-app run build:production && pnpm run build",
+    "artifact:check": "powershell -NoProfile -ExecutionPolicy Bypass -File ../scripts/check-artifact.ps1",
     "lint": "eslint src tests --ext .ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
     "test": "vitest run",

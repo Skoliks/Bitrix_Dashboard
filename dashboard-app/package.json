@@ -6,6 +6,7 @@
     "dev": "vite",
     "dev:local": "vite --host 127.0.0.1 --port 5173 --strictPort",
     "build": "vite build",
+    "build:production": "vite build",
     "preview": "vite preview",
     "lint": "eslint src tests",
     "typecheck": "vue-tsc -p ./tsconfig.app.json",

@@ -10,6 +10,7 @@ const validEnv = {
   APP_PUBLIC_URL: 'https://dashboard.example.com',
   NODE_ENV: 'test',
   LOG_LEVEL: 'debug',
+  DEPLOYMENT_VERSION: 'phase10-test',
   PORT: '4010'
 }
 
@@ -24,6 +25,7 @@ describe('loadConfig', () => {
       nodeEnv: 'test',
       sessionContextMode: 'provisional-headers',
       logLevel: 'debug',
+      deploymentVersion: 'phase10-test',
       port: 4010
     })
     expect(JSON.stringify(config.publicConfig)).not.toContain('vibe_app_')

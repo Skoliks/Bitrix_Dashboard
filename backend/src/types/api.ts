@@ -22,6 +22,7 @@ export interface ApiErrorBody {
 export interface HealthResponse {
   status: 'ok'
   service: string
+  version: string
 }
 
 export interface ReadyResponse {
@@ -30,6 +31,7 @@ export interface ReadyResponse {
   config: {
     allowedOrigins: string[]
     appPublicUrl: string
+    deploymentVersion: string
     nodeEnv: string
     logLevel: string
     port: number

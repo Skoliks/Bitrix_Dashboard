@@ -69,7 +69,7 @@ $frontendStorageRules = @{
 }
 
 Test-TextFiles -Paths @(
-  (Join-Path $Root 'backend/dist/src')
+  (Join-Path $Root 'backend/dist')
 ) -Rules $tokenRules -Required
 
 Test-TextFiles -Paths @(

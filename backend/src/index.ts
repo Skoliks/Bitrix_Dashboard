@@ -2,20 +2,24 @@ import { createServer } from 'node:http'
 
 import { loadConfig } from './config.js'
 import { createApp } from './http/app.js'
+import { writeWebResponse } from './http/nodeResponse.js'
 import { createWebRequest } from './http/nodeRequest.js'
 import { createLogger } from './logging/logger.js'
+import { createStaticAssetHandler } from './static.js'
 
 const config = loadConfig()
 const logLevel = config.publicConfig.logLevel ?? 'info'
 const port = config.publicConfig.port ?? 3000
 const logger = createLogger(logLevel)
-const app = createApp()
+const frontendDist = process.env.FRONTEND_DIST_DIR ?? '../dashboard-app/dist'
+const app = createApp(process.env, {
+  staticAssets: createStaticAssetHandler({ root: frontendDist })
+})
 
 const server = createServer(async (request, response) => {
   const webRequest = createWebRequest(request, port)
   const webResponse = await app.fetch(webRequest)
-  response.writeHead(webResponse.status, Object.fromEntries(webResponse.headers.entries()))
-  response.end(await webResponse.text())
+  await writeWebResponse(webResponse, response)
 })
 
 server.listen(port, () => {

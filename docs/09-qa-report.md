@@ -13,7 +13,7 @@
 - `dashboard-app/vitest.config.ts` расширен на `tests/e2e`, `dashboard-app` lint теперь проверяет `src tests`.
 - Backend production config теперь отклоняет произвольный `VIBECODE_API_BASE_URL`; в production разрешен `vibecode.bitrix24.tech`.
 - Backend logger дополнительно редактирует CRM/PII поля: ФИО, email, телефоны, названия сделок и monetary values.
-- `scripts/check-secrets.ps1` теперь требует наличие `backend/dist/src` и `dashboard-app/dist`, чтобы scan не мог пройти без build artifacts.
+- `scripts/check-secrets.ps1` теперь требует наличие `backend/dist` и `dashboard-app/dist`, чтобы scan не мог пройти без build artifacts.
 - Убран шаблонный Bitrix24 warning text `Well done! Now paste this URL...`; добавлен guard test против возврата template copy.
 
 ## Автоматические проверки
@@ -59,3 +59,11 @@
 - `@mapbox/jsonlint-lines-primitives@2.0.2` и `vaul-vue@0.4.1` требуют финального юридического review из-за отсутствующего license metadata в опубликованном tarball; исключения зафиксированы в `docs/09-license-exceptions.json`.
 - Build frontend все еще предупреждает о chunk > 500 kB; это не сломало Phase 9 gates, но остается performance/packaging risk для Phase 10.
 - Portal acceptance требует стабильной тестовой Битрикс24-среды и не может быть полностью заменен локальными integration tests.
+
+## Phase 10 Packaging Follow-Up
+
+- Добавлен production build gate `backend:build:production`, который собирает frontend `dashboard-app/dist` и backend `backend/dist`.
+- Backend artifact больше не содержит compiled tests: production compile использует `backend/tsconfig.build.json`.
+- Добавлен `scripts/check-artifact.ps1`; проверка блокирует secrets, logs, tests, fixtures, docs, QA artifacts и reference-папки в build output.
+- Локальный production smoke подтверждает, что `/health`, `/ready` и frontend root обслуживаются backend, а `/api` и `/api/bootstrap` без signed handoff остаются API JSON-ответами и не перехватываются SPA fallback.
+- Phase 10 review findings закрыты: binary static assets отдаются byte-for-byte без text transcoding, `/ready` покрыт static fallback test, artifact check дополнительно блокирует raw CRM/PII-like JSON field patterns.

@@ -9,6 +9,7 @@ const validEnv = {
   APP_PUBLIC_URL: 'https://dashboard.example.com',
   NODE_ENV: 'test',
   LOG_LEVEL: 'silent',
+  DEPLOYMENT_VERSION: 'phase10-test',
   PORT: '0'
 }
 
@@ -24,7 +25,10 @@ describe('http app', () => {
 
     expect(response.status).toBe(200)
     expect(response.headers.get('access-control-allow-origin')).toBeNull()
-    expect(JSON.parse(body)).toMatchObject({ status: 'ok' })
+    expect(JSON.parse(body)).toMatchObject({
+      status: 'ok',
+      version: 'phase10-test'
+    })
     for (const pattern of forbiddenPatterns) {
       expect(body).not.toContain(pattern)
     }
@@ -40,7 +44,12 @@ describe('http app', () => {
     expect(response.status).toBe(200)
     expect(response.headers.get('access-control-allow-origin')).toBe('https://portal.bitrix24.com')
     expect(response.headers.get('x-content-type-options')).toBe('nosniff')
-    expect(JSON.parse(body)).toMatchObject({ status: 'ready' })
+    expect(JSON.parse(body)).toMatchObject({
+      status: 'ready',
+      config: {
+        deploymentVersion: 'phase10-test'
+      }
+    })
     for (const pattern of forbiddenPatterns) {
       expect(body).not.toContain(pattern)
     }

@@ -675,13 +675,13 @@
 - Изменить: `.gitignore`, если нужно исключить artifact/log/temp файлы
 
 **Работы:**
-- [ ] Настроить production build: `dashboard-app` frontend artifact + `backend` server artifact.
-- [ ] Настроить backend static serving для собранного Vue frontend.
-- [ ] Проверить, что SPA fallback не перехватывает `/api/*`, `/health`, `/ready`.
-- [ ] Описать required env в `docs/10-env-example.md`: `VIBECODE_APP_KEY`, `VIBECODE_API_BASE_URL`, allowed origins, public URL, log level, deployment version.
-- [ ] Описать secret rotation и запрет попадания secrets в frontend bundle.
-- [ ] Описать rollback procedure для выбранного хостинга в `docs/10-deployment-guide.md`.
-- [ ] Собрать artifact локально и проверить, что в него не входят `.env`, сырые реальные fixtures, логи, reference-папки и временные QA-файлы.
+- [x] Настроить production build: `dashboard-app` frontend artifact + `backend` server artifact.
+- [x] Настроить backend static serving для собранного Vue frontend.
+- [x] Проверить, что SPA fallback не перехватывает `/api/*`, `/health`, `/ready`.
+- [x] Описать required env в `docs/10-env-example.md`: `VIBECODE_APP_KEY`, `VIBECODE_API_BASE_URL`, allowed origins, public URL, log level, deployment version.
+- [x] Описать secret rotation и запрет попадания secrets в frontend bundle.
+- [x] Описать rollback procedure для выбранного хостинга в `docs/10-deployment-guide.md`.
+- [x] Собрать artifact локально и проверить, что в него не входят `.env`, сырые реальные fixtures, логи, reference-папки и временные QA-файлы.
 
 **Критерии готовности:**
 - Production artifact собирается документированной командой.
@@ -700,6 +700,12 @@
 - Отличие production runtime Black Hole от локального Node.js может проявиться только после deploy.
 - Static serving и SPA fallback могут конфликтовать с `/api/*`.
 - Ошибка packaging может случайно включить reference-папки, fixtures или env.
+
+**Статус Phase 10 от 2026-07-23:**
+- Сделано: добавлен backend static serving для `dashboard-app/dist`, production build теперь собирает frontend и backend artifact, backend build компилирует только `src` в `backend/dist/index.js`, health/readiness возвращают `deploymentVersion`, Node adapter отдает binary static assets без text transcoding, `/api`, `/api/*`, `/health` и `/ready` не перехватываются SPA fallback, artifact gate усилен против raw CRM/PII-like JSON, задокументированы env, secret rotation, smoke, logs и rollback.
+- Изменены файлы: `backend/.env.example`, `backend/package.json`, `backend/src/config.ts`, `backend/src/http/app.ts`, `backend/src/http/nodeResponse.ts`, `backend/src/index.ts`, `backend/src/static.ts`, `backend/src/types/api.ts`, `backend/tests/http/app.test.ts`, `backend/tests/http/config.test.ts`, `backend/tests/http/nodeResponse.test.ts`, `backend/tests/http/static.test.ts`, `backend/tsconfig.build.json`, `dashboard-app/package.json`, `scripts/check-secrets.ps1`, `scripts/check-artifact.ps1`, `docs/09-qa-report.md`, `docs/10-env-example.md`, `docs/10-deployment-guide.md`, `docs/06-plan.md`.
+- Пройдены тесты: RED/GREEN `pnpm vitest run tests/http/static.test.ts tests/http/nodeResponse.test.ts`; targeted `pnpm vitest run tests/http/static.test.ts tests/http/config.test.ts tests/http/app.test.ts`; `cd backend; pnpm run test`, `pnpm run typecheck`, `pnpm run lint`, `pnpm run build`, `pnpm run build:production`, `pnpm run security:scan`, `pnpm run license:scan`, `pnpm run artifact:check`; `cd dashboard-app; pnpm run test`, `pnpm run typecheck`, `pnpm run lint`, `pnpm run build`, `pnpm run security:scan`, `pnpm run license:scan`; local compiled backend smoke: `/health`, `/ready`, `/`, `/api`, `/api/bootstrap` without signed handoff, byte-for-byte JPG static asset hash; negative artifact check with raw CRM/PII-like JSON fails as expected.
+- Остались риски: полный `/api/bootstrap` smoke с реальным signed gateway handoff и VibeCode пользовательской сессией требует Phase 11/12 окружения; Black Hole runtime отличия проверяются только после deploy; frontend build все еще предупреждает о chunk > 500 kB и Rollup удаляет два vendor pure-comment annotations из `@vueuse/core`; artifact gate остается pattern-based и не заменяет allowlisted release archive.
 
 ## Phase 11. Deployment
 
@@ -807,7 +813,7 @@
 - [ ] Missing users, missing currency, unknown semantics and truncation produce warnings.
 - [ ] UI is readable inside iframe on wide, medium and narrow widths.
 - [ ] All automated checks pass for `dashboard-app/` and `backend/`.
-- [ ] Production artifact excludes secrets, raw fixtures and reference folders.
+- [x] Production artifact excludes secrets, raw fixtures and reference folders.
 - [ ] Production deployment is live.
 - [ ] Bitrix24 left-menu placement is verified.
 - [ ] Acceptance reports are saved in `docs/`.
