@@ -39,6 +39,7 @@ export const loadConfig = (env: Env = process.env): ConfigResult => {
   const apiBaseUrl = readUrl(env, 'VIBECODE_API_BASE_URL', errors)
   const appPublicUrl = readUrl(env, 'APP_PUBLIC_URL', errors)
   const nodeEnv = readEnum(env.NODE_ENV, runtimeModes, 'development', 'NODE_ENV', errors)
+  validateProductionVibeCodeEndpoint(apiBaseUrl, nodeEnv, errors)
   const allowedOrigins = readOrigins(env, nodeEnv, errors)
   const sessionContextMode = readSessionContextMode(env, nodeEnv, errors)
   const sessionContextHmacSecret = readSessionContextHmacSecret(env, sessionContextMode, errors)
@@ -117,6 +118,22 @@ const readUrl = (env: Env, key: string, errors: string[]): URL | undefined => {
   } catch {
     errors.push(`${key} must be a valid URL`)
     return undefined
+  }
+}
+
+const allowedProductionVibeCodeHosts = new Set(['vibecode.bitrix24.tech'])
+
+const validateProductionVibeCodeEndpoint = (
+  apiBaseUrl: URL | undefined,
+  nodeEnv: RuntimeMode,
+  errors: string[]
+): void => {
+  if (!apiBaseUrl || nodeEnv !== 'production') {
+    return
+  }
+
+  if (!allowedProductionVibeCodeHosts.has(apiBaseUrl.hostname)) {
+    errors.push('VIBECODE_API_BASE_URL host is not allowed in production')
   }
 }
 

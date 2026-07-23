@@ -627,17 +627,17 @@
 - Изменить: `.gitignore`, если появляются локальные QA artifacts
 
 **Работы:**
-- [ ] Добавить команды frontend: `lint`, `typecheck`, `test`, `build`.
-- [ ] Добавить команды backend: `lint`, `typecheck`, `test`, `build`.
-- [ ] Добавить security scan по frontend bundle, backend responses, logs и built artifacts.
-- [ ] Проверить bundle frontend на отсутствие `vibe_app_`, `vibe_api_`, `vibe_session_`, `Authorization`, session token.
-- [ ] Проверить, что session token не попадает в `localStorage`/`sessionStorage`.
-- [ ] Проверить backend validation для невалидных фильтров.
-- [ ] Проверить CORS и security headers.
-- [ ] Проверить, что backend не принимает произвольные VibeCode endpoint'ы.
-- [ ] Проверить логи на отсутствие токенов, ФИО, email, телефонов, названий сделок, полных CRM-ответов и сумм отдельных сделок.
-- [ ] Пройти acceptance в тестовом портале Битрикс24: левое меню, CRM-права, ограниченный пользователь, missing scopes, открытие карточки сделки.
-- [ ] Зафиксировать результаты и остаточные риски в `docs/09-qa-report.md`.
+- [x] Добавить команды frontend: `lint`, `typecheck`, `test`, `build`.
+- [x] Добавить команды backend: `lint`, `typecheck`, `test`, `build`.
+- [x] Добавить security scan по frontend bundle, backend responses, logs и built artifacts.
+- [x] Проверить bundle frontend на отсутствие `vibe_app_`, `vibe_api_`, `vibe_session_`, Authorization/session token leaks; SDK auth-flow literals остаются как vendor code и зафиксированы в `docs/09-qa-report.md`.
+- [x] Проверить, что session token не попадает в `localStorage`/`sessionStorage`.
+- [x] Проверить backend validation для невалидных фильтров.
+- [x] Проверить CORS и security headers.
+- [x] Проверить, что backend не принимает произвольные VibeCode endpoint'ы.
+- [x] Проверить логи на отсутствие токенов, ФИО, email, телефонов, названий сделок, полных CRM-ответов и сумм отдельных сделок.
+- [ ] Пройти acceptance в тестовом портале Битрикс24: левое меню, CRM-права, ограниченный пользователь, missing scopes, открытие карточки сделки. Результат: external blocker, портал недоступен из текущего окружения; сценарии зафиксированы в `docs/09-qa-report.md`.
+- [x] Зафиксировать результаты и остаточные риски в `docs/09-qa-report.md`.
 
 **Критерии готовности:**
 - `cd dashboard-app; pnpm run lint`, `pnpm run typecheck`, `pnpm run test`, `pnpm run build` проходят.
@@ -654,6 +654,12 @@
 - Без стабильного тестового портала часть E2E останется ручной и нестабильной.
 - License scan может выявить transitive dependency с ручной проверкой.
 - Security scan по паттернам не заменяет review логирования и error handling.
+
+**Статус Phase 9 от 2026-07-23:**
+- Сделано: добавлены backend/frontend e2e quality gates, repo-level secret/license scans, production VibeCode endpoint allowlist, расширенная redaction для CRM/PII логов, frontend tests/e2e включены в Vitest/lint.
+- Изменены файлы: `backend/.env.example`, `backend/package.json`, `backend/src/config.ts`, `backend/src/logging/logger.ts`, `backend/tests/http/config.test.ts`, `backend/tests/http/logger.test.ts`, `backend/tests/e2e/qualityGates.test.ts`, `dashboard-app/package.json`, `dashboard-app/vitest.config.ts`, `dashboard-app/src/composables/useB24.ts`, `dashboard-app/src/security/productionSurface.test.ts`, `dashboard-app/tests/e2e/frontendQuality.spec.ts`, `scripts/check-secrets.ps1`, `scripts/check-licenses.ps1`, `docs/09-license-exceptions.json`, `docs/09-qa-report.md`, `docs/06-plan.md`.
+- Пройдены тесты: targeted RED/GREEN для logger/config/e2e; full `pnpm run test`, `pnpm run typecheck`, `pnpm run lint`, `pnpm run build`, `pnpm run security:scan`, `pnpm run license:scan` в `backend/` и `dashboard-app/`.
+- Остались риски: portal acceptance заблокирован отсутствием доступной тестовой Битрикс24-сессии; две transitive зависимости имеют manual-reviewed license exceptions в `docs/09-license-exceptions.json`, но без license metadata в tarball; frontend build предупреждает о chunk > 500 kB; source-level storage scan не заменяет runtime iframe inspection.
 
 ## Phase 10. Production Packaging
 

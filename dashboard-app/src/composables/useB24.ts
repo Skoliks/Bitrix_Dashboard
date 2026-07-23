@@ -86,10 +86,9 @@ export const useB24 = () => {
       }
 
       if (!queryParams.DOMAIN || !queryParams.APP_SID) {
-        // console.error('[docs] Unable to initialize Bitrix24Frame library!')
         throw new SdkError({
           code: 'JSSDK_CLIENT_SIDE_WARNING',
-          description: 'Well done! Now paste this URL into the B24 app settings',
+          description: 'Откройте дашборд из интерфейса Битрикс24.',
           status: 500
         })
       }

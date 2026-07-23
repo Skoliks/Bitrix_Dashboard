@@ -50,6 +50,7 @@ describe('loadConfig', () => {
       NODE_ENV: 'production',
       SESSION_CONTEXT_MODE: 'signed-headers',
       SESSION_CONTEXT_HMAC_SECRET: 'test_hmac_secret',
+      VIBECODE_API_BASE_URL: 'https://vibecode.bitrix24.tech',
       BITRIX24_ALLOWED_ORIGINS: 'https://portal.bitrix24.com',
       LOCAL_FRONTEND_ALLOWED_ORIGINS: 'http://127.0.0.1:5173'
     })
@@ -75,11 +76,25 @@ describe('loadConfig', () => {
       ...validEnv,
       NODE_ENV: 'production',
       SESSION_CONTEXT_MODE: 'signed-headers',
-      SESSION_CONTEXT_HMAC_SECRET: ''
+      SESSION_CONTEXT_HMAC_SECRET: '',
+      VIBECODE_API_BASE_URL: 'https://vibecode.bitrix24.tech'
     })
 
     expect(config.isValid).toBe(false)
     expect(getConfigValidationError(config).code).toBe('VALIDATION_ERROR')
+  })
+
+  it('rejects arbitrary VibeCode API endpoints in production', () => {
+    const config = loadConfig({
+      ...validEnv,
+      NODE_ENV: 'production',
+      SESSION_CONTEXT_MODE: 'signed-headers',
+      SESSION_CONTEXT_HMAC_SECRET: 'test_hmac_secret',
+      VIBECODE_API_BASE_URL: 'https://evil.example.com'
+    })
+
+    expect(config.isValid).toBe(false)
+    expect(getConfigValidationError(config).message).toContain('VIBECODE_API_BASE_URL host is not allowed in production')
   })
 
   it('keeps the default env example production safe', () => {

@@ -7,10 +7,12 @@
     "dev:local": "vite --host 127.0.0.1 --port 5173 --strictPort",
     "build": "vite build",
     "preview": "vite preview",
-    "lint": "eslint src",
+    "lint": "eslint src tests",
     "typecheck": "vue-tsc -p ./tsconfig.app.json",
     "test": "vitest run",
-    "test:watch": "vitest"
+    "test:watch": "vitest",
+    "security:scan": "powershell -NoProfile -ExecutionPolicy Bypass -File ../scripts/check-secrets.ps1",
+    "license:scan": "powershell -NoProfile -ExecutionPolicy Bypass -File ../scripts/check-licenses.ps1"
   },
   "dependencies": {
     "@bitrix24/b24icons-vue": "^2.0.7",

@@ -10,7 +10,9 @@
     "start": "node dist/index.js",
     "lint": "eslint src tests --ext .ts",
     "typecheck": "tsc -p tsconfig.json --noEmit",
-    "test": "vitest run"
+    "test": "vitest run",
+    "security:scan": "powershell -NoProfile -ExecutionPolicy Bypass -File ../scripts/check-secrets.ps1",
+    "license:scan": "powershell -NoProfile -ExecutionPolicy Bypass -File ../scripts/check-licenses.ps1"
   },
   "dependencies": {
     "zod": "^4.4.3"

@@ -35,4 +35,11 @@ describe('production frontend surface', () => {
     expect(layout).not.toContain('View page source')
     expect(layout).not.toContain('cookie-consent')
   })
+
+  it('does not expose template setup copy in Bitrix24 initialization errors', () => {
+    const b24Source = read('src/composables/useB24.ts')
+
+    expect(b24Source).not.toContain('Well done!')
+    expect(b24Source).not.toContain('paste this URL')
+  })
 })

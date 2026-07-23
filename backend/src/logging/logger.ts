@@ -6,16 +6,28 @@ const secretPatterns = [
   /vibe_app_[A-Za-z0-9._-]+/g,
   /vibe_api_[A-Za-z0-9._-]+/g,
   /vibe_session_[A-Za-z0-9._-]+/g,
-  /Bearer\s+[A-Za-z0-9._-]+/gi
+  /Bearer\s+[A-Za-z0-9._-]+/gi,
+  /[A-Z0-9._%+-]+@[A-Z0-9.-]+\.[A-Z]{2,}/gi,
+  /\+?\d[\d\s().-]{7,}\d/g
 ]
 
 const sensitiveKeys = new Set([
+  'amount',
   'authorization',
   'cookie',
+  'dealname',
+  'dealtitle',
+  'displayname',
+  'email',
+  'fullname',
   'set-cookie',
   'x-api-key',
   'apikey',
   'appkey',
+  'name',
+  'opportunity',
+  'phone',
+  'title',
   'sessiontoken',
   'refreshtoken',
   'clientsecret',

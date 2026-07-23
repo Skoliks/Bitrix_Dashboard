@@ -39,4 +39,28 @@ describe('logger redaction', () => {
 
     expect(lines).toEqual([])
   })
+
+  it('redacts CRM personal data and deal details from log payloads', () => {
+    const payload = redactSecrets({
+      manager: {
+        displayName: 'Ivan Petrov',
+        email: 'ivan.petrov@example.com',
+        phone: '+7 999 111-22-33'
+      },
+      deal: {
+        title: 'Big Enterprise Renewal',
+        opportunity: 990000,
+        amount: 990000
+      }
+    })
+
+    const text = JSON.stringify(payload)
+
+    expect(text).not.toContain('Ivan Petrov')
+    expect(text).not.toContain('ivan.petrov@example.com')
+    expect(text).not.toContain('+7 999 111-22-33')
+    expect(text).not.toContain('Big Enterprise Renewal')
+    expect(text).not.toContain('990000')
+    expect(text).toContain('[REDACTED]')
+  })
 })
