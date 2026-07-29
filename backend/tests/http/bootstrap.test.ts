@@ -55,6 +55,35 @@ describe('bootstrap route', () => {
     expect(body).not.toContain('vibe_app_')
   })
 
+  it('resolves the Gateway session before loading bootstrap data', async () => {
+    const referenceDataService = {
+      getBootstrap: vi.fn(async () => bootstrap)
+    }
+    const client = createClient({
+      getCurrentUser: vi.fn(async () => ({ portal: 'portal.bitrix24.com', userId: '42' }))
+    })
+    const app = createApp({
+      ...validEnv,
+      SESSION_CONTEXT_MODE: 'gateway-headers'
+    }, { referenceDataService, vibeCodeClient: client })
+
+    const response = await app.fetch(new Request('http://localhost/api/bootstrap', {
+      headers: {
+        origin: 'https://portal.bitrix24.com',
+        'x-vibe-authorization': 'Bearer vibe_session_gateway',
+        'x-vibe-user-id': '42'
+      }
+    }))
+
+    expect(response.status).toBe(200)
+    expect(client.getCurrentUser).toHaveBeenCalledWith({ sessionToken: 'vibe_session_gateway' })
+    expect(referenceDataService.getBootstrap).toHaveBeenCalledWith({
+      portalId: 'portal.bitrix24.com',
+      sessionToken: 'vibe_session_gateway',
+      userId: '42'
+    })
+  })
+
   it('rejects forged provisional headers when signed mode is enabled', async () => {
     const referenceDataService = {
       getBootstrap: vi.fn(async () => bootstrap)
@@ -143,4 +172,16 @@ describe('bootstrap route', () => {
     })
     expect(referenceDataService.getBootstrap).not.toHaveBeenCalled()
   })
+})
+
+const createClient = (overrides = {}) => ({
+  getCurrentUser: vi.fn(),
+  getDeals: vi.fn(),
+  searchDeals: vi.fn(),
+  aggregateDeals: vi.fn(),
+  getDealCategories: vi.fn(),
+  getStatuses: vi.fn(),
+  getUsers: vi.fn(),
+  getCurrencies: vi.fn(),
+  ...overrides
 })

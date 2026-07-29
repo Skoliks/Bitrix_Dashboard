@@ -75,7 +75,7 @@ export const createApp = (env: Record<string, string | undefined> = process.env,
             throw getConfigValidationError(config)
           }
 
-          return await handleBootstrap(request, referenceDataService, headers, config.sessionContext)
+          return await handleBootstrap(request, referenceDataService, vibeCodeClient, headers, config.sessionContext)
         }
 
         if (request.method === 'GET' && url.pathname === '/api/dashboard') {
@@ -120,6 +120,7 @@ const normalizePublicConfig = (config: ConfigResult): PublicConfig => ({
 const createDefaultVibeCodeClient = (config: ConfigResult): VibeCodeClient => {
   if (!config.isValid) {
     return {
+      async getCurrentUser() { throw getConfigValidationError(config) },
       async getDeals() { throw getConfigValidationError(config) },
       async searchDeals() { throw getConfigValidationError(config) },
       async aggregateDeals() { throw getConfigValidationError(config) },

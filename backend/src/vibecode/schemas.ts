@@ -137,6 +137,13 @@ export const meResponseSchema = successResponseSchema(z.object({
   }).passthrough()
 }).passthrough())
 
+export const currentUserResponseSchema = successResponseSchema(z.object({
+  portal: z.string().min(1),
+  currentUser: z.object({
+    bitrixUserId: z.string().min(1)
+  }).nullable()
+}).passthrough())
+
 export const guideResponseSchema = successResponseSchema(z.object({
   entityApi: z.object({
     entities: z.record(z.string(), z.string())

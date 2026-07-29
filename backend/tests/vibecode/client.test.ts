@@ -24,6 +24,29 @@ describe('VibeCode client', () => {
     expect(Object.keys(client)).not.toContain('request')
   })
 
+  it('resolves the portal and current user from the server-side Gateway bearer', async () => {
+    const fetchImpl = vi.fn(async () => successResponse({
+      success: true,
+      data: {
+        portal: 'portal.bitrix24.ru',
+        currentUser: { bitrixUserId: '42' }
+      }
+    }))
+    const client = createVibeCodeClient({
+      apiBaseUrl: new URL('https://vibecode.example.com/v1/'),
+      appKey: 'vibe_app_secret',
+      fetchImpl
+    })
+
+    await expect(client.getCurrentUser({ sessionToken: 'vibe_session_gateway' })).resolves.toEqual({
+      portal: 'portal.bitrix24.ru',
+      userId: '42'
+    })
+    const [url, init] = fetchImpl.mock.calls[0] as unknown as [URL, RequestInit]
+    expect(url.toString()).toBe('https://vibecode.example.com/v1/me')
+    expect(new Headers(init.headers).get('authorization')).toBe('Bearer vibe_session_gateway')
+  })
+
   it('accepts only typed search and aggregate request bodies at compile time', () => {
     const client = createVibeCodeClient({
       apiBaseUrl: new URL('https://vibecode.example.com'),

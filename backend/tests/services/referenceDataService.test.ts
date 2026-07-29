@@ -24,6 +24,7 @@ const users = [
 ]
 
 const createClient = (overrides: Partial<VibeCodeClient> = {}): VibeCodeClient => ({
+  getCurrentUser: vi.fn(),
   getDeals: vi.fn(),
   searchDeals: vi.fn(),
   aggregateDeals: vi.fn(),

@@ -6,6 +6,7 @@ import {
   type DealAggregateRequestBody,
   type DealSearchRequestBody,
   currenciesResponseSchema,
+  currentUserResponseSchema,
   dealAggregateRequestBodySchema,
   dealCategoriesResponseSchema,
   dealSearchRequestBodySchema,
@@ -50,6 +51,7 @@ interface AggregateBodyParams extends RequestContext {
 }
 
 export interface VibeCodeClient {
+  getCurrentUser(params: RequestContext): Promise<{ portal: string; userId: string }>
   getDeals(params?: GetDealsParams): Promise<Deal[]>
   searchDeals(params: BodyParams): Promise<Deal[]>
   aggregateDeals(params: AggregateBodyParams): Promise<AggregateData>
@@ -102,6 +104,18 @@ export const createVibeCodeClient = (config: VibeCodeClientConfig): VibeCodeClie
   }
 
   return {
+    async getCurrentUser(params) {
+      const body = await request('/me', { method: 'GET' }, params)
+      const response = parseUpstream(currentUserResponseSchema, body)
+      if (!response.data.currentUser) {
+        throw new AppError('AUTH_REQUIRED', 'VibeCode did not return an authenticated user.', 401)
+      }
+      return {
+        portal: response.data.portal,
+        userId: response.data.currentUser.bitrixUserId
+      }
+    },
+
     async getDeals(params = {}) {
       const query = params.limit === undefined ? '' : `?limit=${encodeURIComponent(String(params.limit))}`
       const body = await request(`/deals${query}`, { method: 'GET' }, params)

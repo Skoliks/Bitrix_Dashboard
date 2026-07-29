@@ -225,6 +225,7 @@ const aggregate = (count: number, groups = [] as Array<{ stageId?: string; count
 })
 
 const createClient = (overrides = {}) => ({
+  getCurrentUser: vi.fn(),
   getDeals: vi.fn(),
   getDealCategories: vi.fn(),
   getStatuses: vi.fn(),

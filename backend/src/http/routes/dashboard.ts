@@ -5,8 +5,8 @@ import { buildDashboardResponse } from '../../services/aggregationService.js'
 import { buildDashboardQueries } from '../../services/dealsQueryService.js'
 import { resolveDateRange } from '../../services/dateAdapter.js'
 import { validateDashboardFilters } from '../../services/filterValidation.js'
-import { readSessionContext, type SessionContextConfig } from '../../session/context.js'
-import { AppError } from '../errors.js'
+import { type SessionContextConfig } from '../../session/context.js'
+import { resolveSessionContext } from '../../session/resolve.js'
 
 export const handleDashboard = async (
   request: Request,
@@ -15,14 +15,7 @@ export const handleDashboard = async (
   headers: Headers,
   sessionContextConfig: SessionContextConfig
 ): Promise<Response> => {
-  const session = readSessionContext(request, sessionContextConfig)
-  if (!session.sessionToken) {
-    throw new AppError('AUTH_REQUIRED', 'Dashboard requires a user session.', 401)
-  }
-
-  if (!session.publicContext.portalDomain) {
-    throw new AppError('VALIDATION_ERROR', 'Dashboard requires a portal id.', 400)
-  }
+  const session = await resolveSessionContext(request, sessionContextConfig, client)
 
   const bootstrap = await referenceDataService.getBootstrap({
     portalId: session.publicContext.portalDomain,
