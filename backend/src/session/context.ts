@@ -26,6 +26,10 @@ export const readSessionContext = (request: Request, config: SessionContextConfi
     return readSignedHeaders(request, config)
   }
 
+  if (config.mode === 'gateway-headers') {
+    return readGatewayHeaders(request)
+  }
+
   return readProvisionalHeaders(request)
 }
 
@@ -39,6 +43,19 @@ const readProvisionalHeaders = (request: Request): SessionContext => {
     ...(sessionToken ? { sessionToken } : {}),
     publicContext: {
       ...(portalDomain ? { portalDomain } : {}),
+      ...(userId ? { userId } : {})
+    }
+  }
+}
+
+const readGatewayHeaders = (request: Request): SessionContext => {
+  const authorization = request.headers.get('x-vibe-authorization')
+  const sessionToken = authorization?.replace(/^Bearer\s+/i, '').trim() || undefined
+  const userId = request.headers.get('x-vibe-user-id')?.trim() || undefined
+
+  return {
+    ...(sessionToken ? { sessionToken } : {}),
+    publicContext: {
       ...(userId ? { userId } : {})
     }
   }

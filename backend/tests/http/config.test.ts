@@ -86,6 +86,18 @@ describe('loadConfig', () => {
     expect(getConfigValidationError(config).code).toBe('VALIDATION_ERROR')
   })
 
+  it('allows Gateway session mode without an application HMAC secret', () => {
+    const config = loadConfig({
+      ...validEnv,
+      NODE_ENV: 'production',
+      SESSION_CONTEXT_MODE: 'gateway-headers',
+      VIBECODE_API_BASE_URL: 'https://vibecode.bitrix24.tech'
+    })
+
+    expect(config.isValid).toBe(true)
+    expect(config.publicConfig.sessionContextMode).toBe('gateway-headers')
+  })
+
   it('rejects arbitrary VibeCode API endpoints in production', () => {
     const config = loadConfig({
       ...validEnv,

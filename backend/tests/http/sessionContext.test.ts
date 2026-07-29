@@ -35,6 +35,20 @@ describe('session context', () => {
     expect(context).toEqual({ publicContext: {} })
   })
 
+  it('reads the Gateway-injected session handoff', () => {
+    const context = readSessionContext(new Request('http://localhost/api', {
+      headers: {
+        'x-vibe-authorization': 'Bearer vibe_session_gateway',
+        'x-vibe-user-id': '42'
+      }
+    }), { mode: 'gateway-headers' })
+
+    expect(context).toEqual({
+      sessionToken: 'vibe_session_gateway',
+      publicContext: { userId: '42' }
+    })
+  })
+
   it('accepts signed gateway session handoff', () => {
     const sessionToken = 'vibe_session_secret'
     const portalDomain = 'portal.bitrix24.com'

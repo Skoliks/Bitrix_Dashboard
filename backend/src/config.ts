@@ -2,7 +2,7 @@ import { AppError } from './http/errors.js'
 
 export type RuntimeMode = 'development' | 'test' | 'production'
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent'
-export type SessionContextMode = 'provisional-headers' | 'signed-headers'
+export type SessionContextMode = 'provisional-headers' | 'signed-headers' | 'gateway-headers'
 
 export interface PublicConfig {
   allowedOrigins: string[]
@@ -32,7 +32,7 @@ type Env = Record<string, string | undefined>
 
 const runtimeModes = new Set<RuntimeMode>(['development', 'test', 'production'])
 const logLevels = new Set<LogLevel>(['debug', 'info', 'warn', 'error', 'silent'])
-const sessionContextModes = new Set<SessionContextMode>(['provisional-headers', 'signed-headers'])
+const sessionContextModes = new Set<SessionContextMode>(['provisional-headers', 'signed-headers', 'gateway-headers'])
 
 export const loadConfig = (env: Env = process.env): ConfigResult => {
   const errors: string[] = []
