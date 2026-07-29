@@ -264,6 +264,10 @@
     height: 380px;
   }
 
+  .dashboard-trend-chart [data-vis-component] path {
+    fill: none;
+  }
+
   .dashboard-table-scroll {
     overflow-x: auto;
     max-width: 100%;

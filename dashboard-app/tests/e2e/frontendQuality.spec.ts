@@ -58,5 +58,8 @@ describe('phase 9 frontend quality gates', () => {
     expect(styles).toMatch(/\.dashboard-trend-viewport\s*\{[^}]*max-width:\s*100%[^}]*overflow:\s*hidden/s)
     expect(styles).toMatch(/\.dashboard-trend-chart\s*\{[^}]*height:\s*380px/s)
     expect(styles).toContain('--vis-axis-grid-color')
+    expect(styles).toMatch(
+      /\.dashboard-trend-chart\s+\[data-vis-component\]\s+path\s*\{[^}]*fill:\s*none/s
+    )
   })
 })
