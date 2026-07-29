@@ -1050,6 +1050,10 @@
   paths inside `.dashboard-trend-chart`. This prevents the browser default
   black fill when the library runtime style is unavailable, while preserving
   the existing blue Created and green Won lines.
+- Done: corrected the first fallback selector to target the actual direct SVG
+  structure (`.dashboard-trend-chart svg path`). Owner review of screenshots
+  for `last7`, `last30`, `last90`, and `currentMonth` confirmed that the black
+  area is absent and the chart remains within its card.
 - Changed files: `dashboard-app/src/assets/css/main.css`,
   `dashboard-app/tests/e2e/frontendQuality.spec.ts`, `docs/06-plan.md`, and
   `docs/12.1-owner-demo-report.md`.
@@ -1060,9 +1064,8 @@
   returned `200`; all four pipeline smoke requests returned non-empty trends
   and stages. The temporary smoke token was revoked, and the 50-line log scan
   found zero request-failure, credential, or PII patterns.
-- Remaining risks: final owner browser confirmation is required for both light
-  and dark themes because this workspace has no screenshot automation; the
-  existing large frontend chunk warning, owner-only deployment profile, key
-  rotation requirement, and 500-deal partial-aggregation limit remain.
+- Remaining risks: the existing large frontend chunk warning, owner-only
+  deployment profile, key rotation requirement, and 500-deal
+  partial-aggregation limit remain.
 - Detailed design and plan: `docs/superpowers/specs/2026-07-30-trend-svg-fill-design.md`
   and `docs/superpowers/plans/2026-07-30-trend-svg-fill.md`.
