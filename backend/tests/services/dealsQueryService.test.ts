@@ -52,7 +52,19 @@ describe('deals query service', () => {
         currency: 'RUB'
       },
       limit: 500,
-      select: ['id', 'amount', 'currency', 'stageId', 'closedAt', 'stageSemanticId']
+      select: [
+        'id',
+        'title',
+        'amount',
+        'currency',
+        'categoryId',
+        'stageId',
+        'stageSemanticId',
+        'assignedById',
+        'createdAt',
+        'updatedAt',
+        'closedAt'
+      ]
     })
     expect(queries.trendCreated.filter).toHaveProperty('createdAt')
     expect(queries.trendWon.filter).toHaveProperty('closedAt')
