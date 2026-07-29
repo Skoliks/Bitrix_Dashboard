@@ -91,6 +91,16 @@ describe('dashboard view model', () => {
     expect(cards[4]?.money).toEqual(['60 000 ₽', '$450'])
   })
 
+  it('keeps zero-value trend periods available to the chart', () => {
+    const points: DashboardResponse['trend']['points'] = [
+      { period: '2026-07-01', createdCount: 2, wonCount: 1, wonAmountsByCurrency: [] },
+      { period: '2026-07-02', createdCount: 0, wonCount: 0, wonAmountsByCurrency: [] }
+    ]
+
+    expect(points.map(point => point.createdCount)).toContain(0)
+    expect(points.map(point => point.wonCount)).toContain(0)
+  })
+
   it('marks monetary KPI cards when bounded search makes values partial', () => {
     const cards = buildKpiCards(dashboard.kpi, bootstrap.currencies, {
       ...dashboard.meta,

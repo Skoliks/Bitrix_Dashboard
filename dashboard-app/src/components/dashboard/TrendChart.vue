@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, useTemplateRef } from 'vue'
 import { useElementSize } from '@vueuse/core'
-import { VisAxis, VisLine, VisTooltip, VisXYContainer } from '@unovis/vue'
+import { VisAxis, VisGroupedBar, VisTooltip, VisXYContainer } from '@unovis/vue'
 import type { DashboardResponse } from '../../types/dashboard'
 import { formatDate } from './dashboardViewModel'
 import DashboardEmptyState from './DashboardEmptyState.vue'
@@ -47,7 +47,13 @@ const tickFormat = (index: number) => points.value[index] ? formatDate(points.va
         <span><i class="bg-emerald-500" />Выиграно</span>
       </div>
       <VisXYContainer :data="points" :width="width" class="dashboard-trend-chart">
-        <VisLine :x="x" :y="y" :color="['#0ea5e9', '#10b981']" />
+        <VisGroupedBar
+          :x="x"
+          :y="y"
+          :color="['#0ea5e9', '#10b981']"
+          :group-max-width="36"
+          :data-step="1"
+        />
         <VisAxis type="x" :x="x" :tick-format="tickFormat" />
         <VisAxis type="y" />
         <VisTooltip />

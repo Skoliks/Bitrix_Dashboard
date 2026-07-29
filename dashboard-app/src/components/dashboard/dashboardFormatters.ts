@@ -15,8 +15,9 @@ export const formatMoney = (
     return `${value} ${amount.currency}`
   }
 
-  if (currency.formatString.includes('#')) {
-    return currency.formatString.replace('#', value).trim()
+  const formatString = decodeCurrencyFormat(currency.formatString)
+  if (formatString.includes('#')) {
+    return formatString.replace('#', value).trim()
   }
   return `${value} ${currency.id}`
 }
@@ -46,3 +47,14 @@ const formatAmount = (value: number): string => {
   const rounded = Number.isInteger(value) ? value.toString() : value.toFixed(2)
   return rounded.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
 }
+
+const decodeCurrencyFormat = (value: string): string => value.replace(
+  /&#(x[0-9a-f]+|\d+);/gi,
+  (entity, numericValue: string) => {
+    const isHex = numericValue[0]?.toLowerCase() === 'x'
+    const codePoint = Number.parseInt(isHex ? numericValue.slice(1) : numericValue, isHex ? 16 : 10)
+    return Number.isInteger(codePoint) && codePoint >= 0 && codePoint <= 0x10ffff
+      ? String.fromCodePoint(codePoint)
+      : entity
+  }
+)
