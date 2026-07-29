@@ -51,7 +51,12 @@ const tickFormat = (index: number) => points.value[index] ? formatDate(points.va
         <span><i class="bg-sky-500" />Создано</span>
         <span><i class="bg-emerald-500" />Выиграно</span>
       </div>
-      <VisXYContainer :key="trendRenderKey" :data="points" :width="width" class="dashboard-trend-chart">
+      <VisXYContainer
+        :key="trendRenderKey"
+        :data="points"
+        :width="width"
+        class="dashboard-trend-chart"
+      >
         <VisGroupedBar
           :x="x"
           :y="y"
