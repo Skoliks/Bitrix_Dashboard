@@ -5,7 +5,7 @@ Date: 2026-07-29
 ## Delivered
 
 - Production URL: `https://app-b19d2b35af4a.vibecode.bitrix24.tech`
-- Production commit: `7420c0c`
+- Production commit: `dd3df6b`
 - Session handoff: VibeCode Gateway header `X-Vibe-Authorization` is processed server-side. The browser does not receive or store a VibeCode session token.
 - Required scopes confirmed: `crm`, `user_brief`, `placement`.
 - Production icon: uploaded to the server; the application HTML references `/_gw/icon`.
@@ -21,11 +21,22 @@ LOG_LEVEL=info
 DEPLOYMENT_VERSION=<release-commit>
 APP_PUBLIC_URL=https://app-b19d2b35af4a.vibecode.bitrix24.tech
 BITRIX24_ALLOWED_ORIGINS=https://b24-t2iy2g.bitrix24.ru
-VIBECODE_API_BASE_URL=https://vibecode.bitrix24.tech
+VIBECODE_API_BASE_URL=https://vibecode.bitrix24.tech/v1
 VIBECODE_APP_KEY=<server-side OAuth application key>
 SESSION_CONTEXT_MODE=gateway-headers
 FRONTEND_DIST_DIR=/opt/app/dashboard-app/dist
 ```
+
+## Current Private Owner Demo
+
+Until Bitrix24 placement work resumes, production is deliberately in the
+private `owner-api-key` profile documented in `docs/12.1-owner-demo-report.md`.
+It is suitable only for the server owner to make truthful screenshots. Keep
+the server policy `OWNER_ONLY`; do not share it with a client.
+
+To return to the client profile, deploy the configuration above, remove the
+owner-demo variables, and verify that unauthenticated dashboard requests again
+return `401 AUTH_REQUIRED` before creating a placement.
 
 ## Next Owner Action
 

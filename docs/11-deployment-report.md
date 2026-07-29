@@ -50,7 +50,7 @@ LOG_LEVEL=info
 DEPLOYMENT_VERSION=192c9bb
 APP_PUBLIC_URL=https://app-b19d2b35af4a.vibecode.bitrix24.tech
 BITRIX24_ALLOWED_ORIGINS=https://b24-t2iy2g.bitrix24.ru
-VIBECODE_API_BASE_URL=https://vibecode.bitrix24.tech
+VIBECODE_API_BASE_URL=https://vibecode.bitrix24.tech/v1
 VIBECODE_APP_KEY=<server-side secret>
 SESSION_CONTEXT_MODE=signed-headers
 SESSION_CONTEXT_HMAC_SECRET=<server-side secret>
@@ -111,3 +111,13 @@ Date: 2026-07-29
 - `/health`, `/ready`, `/`, and `/_gw/icon` passed production smoke. The root contains `id="app"` and links to the platform favicon. `/api/bootstrap` and `/api/dashboard` without a real Gateway user session returned JSON `401 AUTH_REQUIRED` as expected.
 - An SVG application icon was uploaded through the Infra API. A temporary technical smoke token was revoked; the post-smoke active token count was `0`.
 - A real Bitrix24 placement smoke is still blocked until an administrator completes OAuth and enables the required Marketplace subscription. See `docs/12-acceptance-report.md`.
+
+## Phase 12.1 Private Owner Demo Update
+
+Date: 2026-07-29
+
+- Production was updated to `dd3df6b`, source snapshot `v7`, while retaining the existing `OWNER_ONLY` Black Hole policy.
+- `SESSION_CONTEXT_MODE=owner-api-key` now obtains data through a personal server-side API key, validates the configured portal, and ignores all browser-supplied portal, user, and token headers.
+- Production smoke passed for `/health`, `/ready`, `/`, `/_gw/icon`, `/api/bootstrap`, and `/api/dashboard`. Only response status, DTO shape, and counts were inspected; CRM values were not retained.
+- Temporary technical tokens were revoked and the app-service log scan found no key, bearer, session-token, or email patterns.
+- This is a temporary single-owner screenshot profile, not a Phase 12 placement substitute. Rollback and remaining risks are recorded in `docs/12.1-owner-demo-report.md`.

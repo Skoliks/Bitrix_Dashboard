@@ -879,3 +879,30 @@
 - Changed files: `backend/src/config.ts`, `backend/src/session/context.ts`, `backend/src/session/resolve.ts`, `backend/src/vibecode/client.ts`, `backend/src/vibecode/schemas.ts`, `backend/src/http/app.ts`, `backend/src/http/routes/bootstrap.ts`, `backend/src/http/routes/dashboard.ts`, related backend tests, `dashboard-app/index.html`, `assets/dashboard-funnel-icon.svg`, `docs/11-deployment-report.md`, `docs/12-acceptance-report.md`, and `docs/12-handoff.md`.
 - Passed checks: backend lint, typecheck, 94 backend tests, 39 frontend tests, production build, artifact check, secret scan, deploy healthcheck, production runtime smoke, icon smoke, token-revocation check, and runtime-log secret-pattern check.
 - Remaining external blocker: no Bitrix24 user OAuth session was available to bind `LEFT_MENU`; VibeCode reports zero registered placements and requires an active Marketplace subscription for binding. Real left-menu, CRM-rights, restricted-user, missing-scope, click-to-open, and full iframe UI acceptance remain pending.
+
+## Phase 12.1 Private Owner Demo Status (2026-07-29)
+
+- Done: added a production-only `owner-api-key` mode for the existing
+  `OWNER_ONLY` server. It resolves one configured portal from the server-side
+  personal API key, ignores browser-supplied identity headers, and keeps the
+  future `gateway-headers` mode available for client integration.
+- Done: updated production to commit `dd3df6b` and source snapshot `v7`.
+  `/health`, `/ready`, frontend root, icon, `/api/bootstrap`, and
+  `/api/dashboard` passed technical smoke with real owner data; only statuses,
+  DTO shape, and counts were recorded.
+- Changed files: `backend/src/config.ts`, `backend/src/session/context.ts`,
+  `backend/src/session/resolve.ts`, `backend/src/vibecode/client.ts`,
+  `backend/src/vibecode/schemas.ts`, `backend/src/http/app.ts`,
+  `backend/src/http/routes/bootstrap.ts`, `backend/src/http/routes/dashboard.ts`,
+  `backend/src/services/dealsQueryService.ts`, related backend tests,
+  `docs/11-deployment-report.md`, `docs/12-handoff.md`, and
+  `docs/12.1-owner-demo-report.md`.
+- Passed checks: backend lint, typecheck, 105 backend tests, frontend lint,
+  typecheck, 39 frontend tests, production build, artifact check, secret scan,
+  license scan, deploy healthcheck, production runtime smoke, temporary-token
+  revocation, and runtime-log secret-pattern scan.
+- Remaining risks: this is single-owner screenshot mode only and must not be
+  shared with clients; the personal API key previously pasted in chat must be
+  rotated; Phase 12 placement and per-user CRM-rights acceptance remain
+  blocked; manual screenshots are still an owner action; the known frontend
+  chunk-size warning remains.
