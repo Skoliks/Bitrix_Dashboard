@@ -1,0 +1,5 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 128 128" role="img" aria-label="Sales funnel dashboard">
+  <rect width="128" height="128" rx="24" fill="#0f766e"/>
+  <path d="M24 30h80L78 62v31l-28 12V62L24 30Z" fill="#f8fafc"/>
+  <path d="M39 43h50M48 56h32M57 69h14" fill="none" stroke="#0f766e" stroke-linecap="round" stroke-width="8"/>
+</svg>
