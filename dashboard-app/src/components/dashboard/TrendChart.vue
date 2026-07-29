@@ -123,7 +123,12 @@ const tooltipTriggers = computed(() => ({
           class="dashboard-trend-chart"
         >
           <VisArea :x="x" :y="y" :color="seriesColor" />
-          <VisLine :x="x" :y="y" :color="seriesColor" :line-width="3" />
+          <VisLine
+            :x="x"
+            :y="y"
+            :color="seriesColor"
+            :line-width="3"
+          />
           <VisAxis type="x" :x="x" :tick-format="tickFormat" />
           <VisAxis type="y" :y="y" :tick-format="yTickFormat" />
           <VisTooltip :triggers="tooltipTriggers" />

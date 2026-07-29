@@ -7,7 +7,12 @@ const isLoading = inject<Ref<boolean>>('isLoading', ref(false))
 
 <template>
   <div v-if="isLoading" class="min-h-dvh" />
-  <B24DashboardGroup v-else unit="px" storage="local" aria-label="Дашборд">
+  <B24DashboardGroup
+    v-else
+    unit="px"
+    storage="local"
+    aria-label="Дашборд"
+  >
     <RouterView />
   </B24DashboardGroup>
 </template>

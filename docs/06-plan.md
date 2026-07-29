@@ -961,8 +961,43 @@
   pipeline-switch screenshot remains an owner acceptance action.
 - Detailed plan: `docs/superpowers/plans/2026-07-29-phase-13-crm-data-accuracy.md`.
 
-## Phase 14: Light Dashboard UI And Readable Analytics (Planned)
+## Phase 14: Light Dashboard UI And Readable Analytics (Completed 2026-07-30)
 
-- Goal: provide a light sidebar-free dashboard, compact visual funnel, and
-  one smooth selectable trend while period and currency remain global filters.
+- Done: the owner dashboard now starts in the light theme, has no internal
+  sidebar, and provides an icon-only theme toggle in the upper-right corner.
+  Pipeline selection remains global at the top of the dashboard; period and
+  currency controls are placed in the trend header and still refresh every KPI,
+  the funnel, recent deals, and the trend with the same filter state.
+- Done: the stage panel is a compact layered visual funnel that keeps zero
+  stages. On desktop the funnel receives one third and the trend two thirds of
+  the analytics row; panels stack at and below 860px.
+- Done: the trend uses one smooth selectable series (`Created` or `Won`). The
+  backend returns daily points through 14 days, weekly points from 15 through
+  180 days, and monthly points above that range. The chart measures its own
+  available card width, clips its viewport, and reduces x-axis labels for dense
+  ranges, preventing horizontal page overflow for `last7`, `last30`, `last90`,
+  `currentMonth`, and `previousMonth`.
+- Changed files: `backend/src/services/aggregationService.ts`,
+  `backend/tests/services/aggregationService.test.ts`, `dashboard-app/src/App.vue`,
+  `dashboard-app/src/components/UserMenu.vue`,
+  `dashboard-app/src/layouts/default.vue`, `dashboard-app/vite.config.ts`,
+  `dashboard-app/src/assets/css/main.css`, `dashboard-app/src/pages/index.vue`,
+  `dashboard-app/src/components/dashboard/{PipelineSelector,TrendFilters,StageFunnel,TrendChart}.vue`,
+  `dashboard-app/src/components/dashboard/{dashboardTheme,trendViewModel}.ts`,
+  and related frontend tests.
+- Passed checks: backend `110/110` tests, backend typecheck, lint,
+  production build and artifact check; frontend `51/51` tests, typecheck,
+  lint and secret scan. The allowlisted 71-entry archive contained zero
+  forbidden entries. Production deploy completed as source snapshot `v11`;
+  `/health`, frontend root, bootstrap, all categories `2`, `4`, `6`, `8`, and
+  the five built-in date presets returned successfully. A temporary smoke token
+  was revoked, and a 41-line app-log scan found no request-failure, credential,
+  or PII patterns.
+- Remaining risks: owner-demo mode remains single-owner and is not client
+  integration; the previously shared personal key still needs rotation; a
+  500-record snapshot remains intentionally partial until pagination exists;
+  the known frontend large-chunk warning remains. The preserved server-side
+  `DEPLOYMENT_VERSION` label still shows the prior value even though source
+  snapshot `v11` is live. Final visual acceptance in a browser remains the
+  owner's screenshot step because no local browser automation is installed.
 - Detailed plan: `docs/superpowers/plans/2026-07-29-phase-14-dashboard-ui.md`.
