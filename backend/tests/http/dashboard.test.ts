@@ -50,6 +50,32 @@ const deal = (overrides: Partial<Deal> = {}): Deal => ({
 })
 
 describe('dashboard route', () => {
+  it('requests one unbounded-by-date deal snapshot for the selected filters', async () => {
+    const client = createClient({
+      searchDeals: vi.fn(async () => [deal({ id: 72, stageId: 'NEW', stageSemanticId: 'P' })])
+    })
+    const app = createApp(validEnv, {
+      referenceDataService: { getBootstrap: vi.fn(async () => bootstrap) },
+      vibeCodeClient: client
+    })
+
+    const response = await app.fetch(new Request('http://localhost/api/dashboard?categoryId=0&currency=RUB', {
+      headers: provisionalHeaders()
+    }))
+
+    expect(response.status).toBe(200)
+    expect(client.aggregateDeals).not.toHaveBeenCalled()
+    expect(client.searchDeals).toHaveBeenCalledWith(expect.objectContaining({
+      body: expect.objectContaining({
+        filter: { categoryId: 0, currency: 'RUB' },
+        limit: 500
+      })
+    }))
+    const body = client.searchDeals.mock.calls[0]?.[0]?.body
+    expect(body.filter).not.toHaveProperty('createdAt')
+    expect(body.filter).not.toHaveProperty('closedAt')
+  })
+
   it('returns dashboard data and applies category, date and currency filters', async () => {
     const referenceDataService = { getBootstrap: vi.fn(async () => bootstrap) }
     const client = createClient()
@@ -70,8 +96,8 @@ describe('dashboard route', () => {
         currency: 'RUB'
       },
       kpi: {
-        openNow: { count: 2 },
-        openCreated: { count: 1 },
+        openNow: { count: 0 },
+        openCreated: { count: 0 },
         won: { count: 1 }
       },
       warnings: []
@@ -80,19 +106,10 @@ describe('dashboard route', () => {
       portalId: 'portal.bitrix24.com',
       sessionToken: 'vibe_session_secret'
     })
-    expect(client.aggregateDeals).toHaveBeenCalledWith(expect.objectContaining({
-      body: expect.objectContaining({
-        filter: expect.objectContaining({
-          categoryId: 0,
-          currency: 'RUB'
-        })
-      })
-    }))
     expect(client.searchDeals).toHaveBeenCalledWith(expect.objectContaining({
       body: expect.objectContaining({
-        filter: expect.objectContaining({
-          createdAt: { $gte: '2026-07-01T00:00:00.000Z', $lte: '2026-07-31T23:59:59.999Z' }
-        })
+        filter: { categoryId: 0, currency: 'RUB' },
+        limit: 500
       })
     }))
   })
@@ -166,11 +183,7 @@ describe('dashboard route', () => {
 
       expect(response.status).toBe(200)
       expect(client.searchDeals).toHaveBeenCalledWith(expect.objectContaining({
-        body: expect.objectContaining({
-          filter: expect.objectContaining({
-            createdAt: { $gte: '2026-06-23T00:00:00.000Z', $lte: '2026-07-22T23:59:59.999Z' }
-          })
-        })
+        body: expect.objectContaining({ filter: { categoryId: 0 }, limit: 500 })
       }))
     } finally {
       vi.useRealTimers()
@@ -194,15 +207,10 @@ describe('dashboard route', () => {
     expect(client.searchDeals).not.toHaveBeenCalled()
   })
 
-  it('returns partial aggregation warning from aggregate meta over HTTP', async () => {
+  it('returns partial aggregation warning when the deal snapshot reaches its limit', async () => {
     const referenceDataService = { getBootstrap: vi.fn(async () => bootstrap) }
     const client = createClient()
-    client.aggregateDeals = vi
-      .fn()
-      .mockResolvedValueOnce(aggregate(2, [], true))
-      .mockResolvedValueOnce(aggregate(1))
-      .mockResolvedValueOnce(aggregate(1))
-      .mockResolvedValueOnce(aggregate(1))
+    client.searchDeals = vi.fn(async () => Array.from({ length: 500 }, (_, index) => deal({ id: index + 1 })))
     const app = createApp(validEnv, { referenceDataService, vibeCodeClient: client })
 
     const response = await app.fetch(new Request('http://localhost/api/dashboard', {
@@ -212,7 +220,7 @@ describe('dashboard route', () => {
 
     expect(response.status).toBe(200)
     expect(body.warnings).toContainEqual({ code: 'PARTIAL_AGGREGATION' })
-    expect(body.meta.truncatedBlocks).toContain('openNow')
+    expect(body.meta.truncatedBlocks).toContain('snapshot')
   })
 
   it('returns expired session as a blocking error', async () => {
@@ -274,8 +282,8 @@ describe('dashboard route', () => {
     expect(response.status).toBe(200)
     expect(client.getKeyPortal).toHaveBeenCalledOnce()
     expect(client.getCurrentUser).not.toHaveBeenCalled()
-    expect(client.aggregateDeals).toHaveBeenCalled()
-    expect(client.searchDeals).toHaveBeenCalled()
+    expect(client.aggregateDeals).not.toHaveBeenCalled()
+    expect(client.searchDeals).toHaveBeenCalledOnce()
   })
 })
 

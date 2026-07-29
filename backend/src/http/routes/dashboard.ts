@@ -56,16 +56,7 @@ export const handleDashboard = async (
   })
   const requestContext = session.sessionToken ? { sessionToken: session.sessionToken } : {}
 
-  const [openNow, openCreated, won, funnel, moneyKpiDeals, trendCreatedDeals, trendWonDeals, recentDeals] = await Promise.all([
-    client.aggregateDeals({ ...requestContext, body: queries.openNow }),
-    client.aggregateDeals({ ...requestContext, body: queries.openCreated }),
-    client.aggregateDeals({ ...requestContext, body: queries.won }),
-    client.aggregateDeals({ ...requestContext, body: queries.funnel }),
-    client.searchDeals({ ...requestContext, body: queries.moneyKpi }),
-    client.searchDeals({ ...requestContext, body: queries.trendCreated }),
-    client.searchDeals({ ...requestContext, body: queries.trendWon }),
-    client.searchDeals({ ...requestContext, body: queries.recentDeals })
-  ])
+  const deals = await client.searchDeals({ ...requestContext, body: queries.snapshot })
 
   const dashboard = buildDashboardResponse({
     filters,
@@ -78,17 +69,8 @@ export const handleDashboard = async (
     },
     range,
     bootstrapWarnings: dashboardBootstrap.warnings,
-    aggregates: {
-      openNow,
-      openCreated,
-      won,
-      funnel,
-      moneyKpi: won
-    },
-    moneyKpiDeals,
-    trendCreatedDeals,
-    trendWonDeals,
-    recentDeals
+    deals,
+    snapshotTruncated: deals.length === queries.snapshot.limit
   })
 
   return Response.json(dashboard satisfies DashboardResponse, {
