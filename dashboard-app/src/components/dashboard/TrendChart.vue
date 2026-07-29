@@ -14,6 +14,9 @@ const props = defineProps<{
 const cardRef = useTemplateRef<HTMLElement | null>('cardRef')
 const { width } = useElementSize(cardRef)
 const points = computed(() => props.trend.points)
+const trendRenderKey = computed(() => points.value
+  .map(point => `${point.period}:${point.createdCount}:${point.wonCount}`)
+  .join('|'))
 const x = (_point: DashboardResponse['trend']['points'][number], index: number) => index
 const y = [
   (point: DashboardResponse['trend']['points'][number]) => point.createdCount,
@@ -42,11 +45,13 @@ const tickFormat = (index: number) => points.value[index] ? formatDate(points.va
       compact
     />
     <div v-else>
+      <span hidden data-test="trend-point-count">{{ points.length }}</span>
+      <span hidden data-test="trend-periods">{{ points.map(point => point.period).join('|') }}</span>
       <div class="dashboard-chart-legend">
         <span><i class="bg-sky-500" />Создано</span>
         <span><i class="bg-emerald-500" />Выиграно</span>
       </div>
-      <VisXYContainer :data="points" :width="width" class="dashboard-trend-chart">
+      <VisXYContainer :key="trendRenderKey" :data="points" :width="width" class="dashboard-trend-chart">
         <VisGroupedBar
           :x="x"
           :y="y"

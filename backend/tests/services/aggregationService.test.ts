@@ -75,6 +75,21 @@ describe('aggregation service', () => {
     expect(response.kpi.wonAmountByCurrency).toEqual([])
   })
 
+  it('totals multiple successful category winners without changing average-ticket rules', () => {
+    const response = buildDashboardResponse({
+      ...baseInput,
+      filters: { ...baseInput.filters, categoryId: 2 },
+      deals: [
+        deal({ id: 1, categoryId: 2, stageId: 'WON', stageSemanticId: 'S', amount: 500000000, closedAt: '2026-07-02T10:00:00.000Z' }),
+        deal({ id: 2, categoryId: 2, stageId: 'WON', stageSemanticId: 'S', amount: 233, closedAt: '2026-07-03T10:00:00.000Z' })
+      ],
+      snapshotTruncated: false
+    })
+
+    expect(response.kpi.won).toEqual({ count: 2 })
+    expect(response.kpi.wonAmountByCurrency).toEqual([{ currency: 'RUB', amount: 500000233 }])
+  })
+
   it('fills zero-value daily periods in the trend', () => {
     const response = buildDashboardResponse({
       ...baseInput,

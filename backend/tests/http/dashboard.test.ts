@@ -150,6 +150,57 @@ describe('dashboard route', () => {
     })
   })
 
+  it('replaces the snapshot and stage references after switching from category 2 to category 4', async () => {
+    const defaultBootstrap: BootstrapResponse = {
+      ...bootstrap,
+      categories: [
+        { id: 2, name: 'Projects', sort: 10, isLocked: false },
+        { id: 4, name: 'Automation', sort: 20, isLocked: false }
+      ],
+      stages: [{ id: 'C2:NEW', entityId: 'DEAL_STAGE_2', name: 'New project', sort: 10, semantic: 'process' }],
+      defaults: { ...bootstrap.defaults, categoryId: 2 }
+    }
+    const selectedBootstrap: BootstrapResponse = {
+      ...defaultBootstrap,
+      stages: [{ id: 'C4:NEW', entityId: 'DEAL_STAGE_4', name: 'New automation deal', sort: 10, semantic: 'process' }],
+      defaults: { ...defaultBootstrap.defaults, categoryId: 4 }
+    }
+    const referenceDataService = {
+      getBootstrap: vi.fn()
+        .mockResolvedValueOnce(defaultBootstrap)
+        .mockResolvedValueOnce(defaultBootstrap)
+        .mockResolvedValueOnce(selectedBootstrap)
+    }
+    const client = createClient({
+      searchDeals: vi.fn()
+        .mockResolvedValueOnce([deal({ id: 2, categoryId: 2, stageId: 'C2:NEW', stageSemanticId: 'P' })])
+        .mockResolvedValueOnce([deal({ id: 4, categoryId: 4, stageId: 'C4:NEW', stageSemanticId: 'P' })])
+    })
+    const app = createApp(validEnv, { referenceDataService, vibeCodeClient: client })
+
+    const category2Response = await app.fetch(new Request('http://localhost/api/dashboard?categoryId=2', {
+      headers: provisionalHeaders()
+    }))
+    const category4Response = await app.fetch(new Request('http://localhost/api/dashboard?categoryId=4', {
+      headers: provisionalHeaders()
+    }))
+
+    expect(category2Response.status).toBe(200)
+    expect(category4Response.status).toBe(200)
+    expect(await category4Response.json()).toMatchObject({
+      filters: { categoryId: 4 },
+      references: { stages: [{ id: 'C4:NEW', entityId: 'DEAL_STAGE_4' }] }
+    })
+    expect(client.searchDeals).toHaveBeenLastCalledWith(expect.objectContaining({
+      body: expect.objectContaining({ filter: { categoryId: 4 } })
+    }))
+    expect(referenceDataService.getBootstrap).toHaveBeenLastCalledWith({
+      portalId: 'portal.bitrix24.com',
+      sessionToken: 'vibe_session_secret',
+      categoryId: 4
+    })
+  })
+
   it('propagates USERS_UNAVAILABLE as a partial dashboard warning', async () => {
     const referenceDataService = {
       getBootstrap: vi.fn(async () => ({
