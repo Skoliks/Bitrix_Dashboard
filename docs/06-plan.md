@@ -906,3 +906,31 @@
   rotated; Phase 12 placement and per-user CRM-rights acceptance remain
   blocked; manual screenshots are still an owner action; the known frontend
   chunk-size warning remains.
+
+### Dashboard Data Accuracy Release (2026-07-29)
+
+- Done: production was updated to commit `2e789f8`, source snapshot `v9`.
+  Selected-stage references now follow the requested category. All dashboard
+  metrics are calculated from one 500-record bounded selected-category
+  snapshot, so last-day records, recent deals, funnel data, monetary KPI, and
+  trend use the same source. The trend is zero-filled and rendered as grouped
+  bars; numeric currency entities render as their symbols.
+- Changed files: `backend/src/services/referenceDataService.ts`,
+  `backend/src/http/routes/dashboard.ts`,
+  `backend/src/services/dealsQueryService.ts`,
+  `backend/src/services/aggregationService.ts`, their tests,
+  `dashboard-app/src/components/dashboard/TrendChart.vue`,
+  `dashboard-app/src/components/dashboard/dashboardFormatters.ts`, related
+  frontend tests, `docs/12.1-owner-demo-report.md`, and `docs/06-plan.md`.
+- Passed checks: 107 backend tests, backend typecheck and lint, production
+  build, artifact check, 42 frontend tests, frontend typecheck and lint, secret
+  scan, deploy healthcheck, and production smoke. The smoke returned `200` for
+  categories 2, 4, 6, and 8, with category-correct stage IDs, 30 trend points,
+  and the new recent records in category 2. The 71-entry artifact had zero
+  forbidden entries; temporary smoke access was revoked; post-deploy logs had
+  zero request failures, errors, and credential-pattern matches.
+- Remaining risks: the owner demo remains single-owner and is not Phase 12
+  client integration; the previously shared personal key must be rotated; the
+  frontend large-chunk warning remains. A snapshot that reaches 500 deals is
+  deliberately marked `PARTIAL_AGGREGATION` with `truncatedBlocks: ['snapshot']`
+  until pagination is implemented.
