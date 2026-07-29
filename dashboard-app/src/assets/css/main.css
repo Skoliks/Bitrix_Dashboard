@@ -264,7 +264,7 @@
     height: 380px;
   }
 
-  .dashboard-trend-chart [data-vis-component] path {
+  .dashboard-trend-chart svg path {
     fill: none;
   }
 
