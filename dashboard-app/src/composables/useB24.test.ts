@@ -18,3 +18,14 @@ describe('useB24 / getFrame()', () => {
     }
   })
 })
+
+describe('useB24 / init()', () => {
+  it('returns a failed result when opened outside the Bitrix24 frame', async () => {
+    const { init } = useB24()
+
+    const result = await init()
+
+    expect(result.isSuccess).toBe(false)
+    expect(result.getErrorMessages()).toContain('Откройте дашборд из интерфейса Битрикс24.')
+  })
+})

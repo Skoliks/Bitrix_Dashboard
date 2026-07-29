@@ -115,9 +115,9 @@ export const useB24 = () => {
       if (!(error instanceof SdkError && error.code === 'JSSDK_CLIENT_SIDE_WARNING')) {
         buildLogger('useB24.init').error(error instanceof Error ? error.message : String(error))
       }
-    }
 
-    return new Result()
+      return Result.fail(error instanceof Error ? error : new Error(String(error)))
+    }
   }
 
   function isFrame() {

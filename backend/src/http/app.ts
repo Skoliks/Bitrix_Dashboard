@@ -56,7 +56,7 @@ export const createApp = (env: Record<string, string | undefined> = process.env,
           return new Response(null, { status: 204, headers })
         }
 
-        ensureCorsAllowed(request, publicConfig.allowedOrigins)
+        ensureCorsAllowed(request, publicConfig.allowedOrigins, publicConfig.appPublicUrl)
 
         if (request.method === 'GET' && url.pathname === '/ready') {
           if (!config.isValid) {
@@ -100,9 +100,9 @@ export const createApp = (env: Record<string, string | undefined> = process.env,
   }
 }
 
-const ensureCorsAllowed = (request: Request, allowedOrigins: string[]): void => {
+const ensureCorsAllowed = (request: Request, allowedOrigins: string[], appPublicUrl?: string): void => {
   const origin = request.headers.get('origin')
-  if (origin && !allowedOrigins.includes(origin)) {
+  if (origin && !allowedOrigins.includes(origin) && origin !== appPublicUrl) {
     throw new AppError('CRM_ACCESS_DENIED', 'Origin is not allowed.', 403)
   }
 }

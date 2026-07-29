@@ -67,3 +67,13 @@
 - Добавлен `scripts/check-artifact.ps1`; проверка блокирует secrets, logs, tests, fixtures, docs, QA artifacts и reference-папки в build output.
 - Локальный production smoke подтверждает, что `/health`, `/ready` и frontend root обслуживаются backend, а `/api` и `/api/bootstrap` без signed handoff остаются API JSON-ответами и не перехватываются SPA fallback.
 - Phase 10 review findings закрыты: binary static assets отдаются byte-for-byte без text transcoding, `/ready` покрыт static fallback test, artifact check дополнительно блокирует raw CRM/PII-like JSON field patterns.
+
+## Phase 11 Runtime Follow-Up
+
+- Artifact `192c9bb` развернут на Black Hole server `c318fdf4-8ac1-485d-8bfc-82eb87d2b872`, URL `https://app-b19d2b35af4a.vibecode.bitrix24.tech`.
+- После деплоя пройдены `cd backend; pnpm run test` (23 files, 87 tests) и `cd dashboard-app; pnpm run test` (8 files, 37 tests).
+- Runtime smoke через краткоживущий Black Hole access token подтвердил `200` для `/health`, `/ready`, frontend root и static JS/CSS assets.
+- `/api`, `/api/bootstrap` и `/api/dashboard` в production не перехватываются SPA fallback: без signed user handoff они возвращают JSON `VALIDATION_ERROR`/`AUTH_REQUIRED`.
+- Проверены production headers: CSP с `frame-ancestors`, `referrer-policy`, `x-content-type-options`, `permissions-policy`, allowed CORS origin и blocked origin.
+- Runtime logs после smoke проверены на известные secret patterns; совпадений с app key, management API key, key fragments, `SESSION_CONTEXT_HMAC_SECRET`, bearer authorization strings и `vibe_session_` не найдено.
+- Полный пользовательский `/api/bootstrap`/`/api/dashboard` acceptance остается для Phase 12, потому что нужен реальный Bitrix24 iframe/gateway handoff.

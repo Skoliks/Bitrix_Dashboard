@@ -707,6 +707,54 @@
 - Пройдены тесты: RED/GREEN `pnpm vitest run tests/http/static.test.ts tests/http/nodeResponse.test.ts`; targeted `pnpm vitest run tests/http/static.test.ts tests/http/config.test.ts tests/http/app.test.ts`; `cd backend; pnpm run test`, `pnpm run typecheck`, `pnpm run lint`, `pnpm run build`, `pnpm run build:production`, `pnpm run security:scan`, `pnpm run license:scan`, `pnpm run artifact:check`; `cd dashboard-app; pnpm run test`, `pnpm run typecheck`, `pnpm run lint`, `pnpm run build`, `pnpm run security:scan`, `pnpm run license:scan`; local compiled backend smoke: `/health`, `/ready`, `/`, `/api`, `/api/bootstrap` without signed handoff, byte-for-byte JPG static asset hash; negative artifact check with raw CRM/PII-like JSON fails as expected.
 - Остались риски: полный `/api/bootstrap` smoke с реальным signed gateway handoff и VibeCode пользовательской сессией требует Phase 11/12 окружения; Black Hole runtime отличия проверяются только после deploy; frontend build все еще предупреждает о chunk > 500 kB и Rollup удаляет два vendor pure-comment annotations из `@vueuse/core`; artifact gate остается pattern-based и не заменяет allowlisted release archive.
 
+## Phase 10.5. Server Preparation
+
+**Цель:** подготовить Black Hole/server-side окружение к деплою без публикации production artifact: создать/проверить сервер, ключи и env profile так, чтобы Phase 11 занималась только deploy и runtime smoke.
+
+**Файлы:**
+- Создать: `docs/10.5-server-prep.md`
+- Изменить: `docs/10-deployment-guide.md`, если фактические настройки Black Hole требуют уточнить команды или env profile
+- Изменить: `docs/09-qa-report.md`, если подготовительные проверки выявят новый blocker
+- Не изменять: frontend/backend runtime code, если подготовка не выявит несовместимость с hosting runtime
+
+**Работы:**
+- [x] Подтвердить выбранный hosting: Black Hole или явно согласованный production-хостинг.
+- [x] Создать или выбрать production server/app в Black Hole без деплоя artifact из Phase 10.
+- [x] Подтвердить Node.js 20 runtime, start command `cd backend && pnpm install --prod && pnpm start` или эквивалентную команду хостинга.
+- [x] Подтвердить способ доставки source/archive artifact и исключения: `.env`, raw fixtures, logs, `b24-ai-starter/`, `templates-dashboard-vue/`, QA temp files.
+- [x] Получить public HTTPS URL или staging URL, если Black Hole выдает его до первого deploy.
+- [x] Подготовить server-side env profile без значений секретов: `NODE_ENV`, `PORT`, `LOG_LEVEL`, `DEPLOYMENT_VERSION`, `APP_PUBLIC_URL`, `BITRIX24_ALLOWED_ORIGINS`, `VIBECODE_API_BASE_URL`, `VIBECODE_APP_KEY`, `SESSION_CONTEXT_MODE`, `SESSION_CONTEXT_HMAC_SECRET`, `FRONTEND_DIST_DIR`.
+- [x] Подтвердить, что `VIBECODE_APP_KEY` является production `vibe_app_...`, а `vibe_api_...` не используется как runtime key.
+- [x] Сгенерировать или принять `SESSION_CONTEXT_HMAC_SECRET` только в server-side secret storage; не сохранять реальное значение в repo, docs или chat. Результат: real value не создавался в файлах; генерация и передача через server-side env зафиксированы как explicit owner action перед Phase 11 deploy.
+- [x] Проверить, есть ли у текущей машины авторизованный Black Hole CLI/API доступ для Phase 11; если нет, зафиксировать, кто выполняет deploy action.
+- [x] Зафиксировать server/app id, public/staging URL, runtime, start command, env names без secret values, open blockers и owner actions в `docs/10.5-server-prep.md`.
+
+**Критерии готовности:**
+- Production server/app существует или документально выбран как внешний manual step перед Phase 11.
+- Все required env names подготовлены как Phase 11 deploy env profile; реальные secret values не записаны в docs и перечислены как concrete owner actions перед deploy.
+- Реальные secrets не записаны в git, docs, frontend bundle, build artifact или чат.
+- Известен deploy mechanism для Phase 11: Black Hole CLI/API, панель хостинга или manual upload.
+- Phase 11 может стартовать с конкретными server/app id, URL, env profile и списком остаточных blockers.
+
+**Тесты:**
+- Проверить локально `cd backend; pnpm run build:production`.
+- Проверить локально `cd backend; pnpm run artifact:check`.
+- Проверить локально `cd backend; pnpm run security:scan` и `cd dashboard-app; pnpm run security:scan` после build.
+- Если Black Hole API доступен до deploy: выполнить non-destructive read-only check server/app metadata и env names без secret values.
+- Secret hygiene check: `git status --short --untracked-files=all` не показывает новых `.env`, archives with secrets или log files.
+
+**Риски:**
+- Black Hole может требовать другой start command, архивную структуру или install step, чем локальный Node.js smoke.
+- Реальный gateway signed handoff может быть недоступен до Bitrix24 placement, поэтому Phase 10.5 не закрывает пользовательский `/api/bootstrap` acceptance.
+- Ошибка в server-side env names может проявиться только на `/ready` после deploy.
+- Передача deploy/API ключей в чат создает риск утечки; предпочтительно использовать локальный CLI auth или server-side secret storage.
+
+**Статус Phase 10.5 от 2026-07-23:**
+- Сделано: подтвержден Black Hole server `c318fdf4-8ac1-485d-8bfc-82eb87d2b872`, `running`, `BLACKHOLE`, `CONNECTED`, `OWNER_ONLY`, URL `https://app-b19d2b35af4a.vibecode.bitrix24.tech`; подтвержден runtime `node20`; согласованы `displayName` и `description`; подготовлены allowlisted archive layout, deploy install/start/health fields и env profile без secret values; зафиксировано, что `vibe_api_...` используется только как management key, runtime key должен быть `VIBECODE_APP_KEY`, а ротация shared keys и генерация `SESSION_CONTEXT_HMAC_SECRET` являются owner actions перед Phase 11.
+- Изменены файлы: `docs/06-plan.md`, `docs/10-deployment-guide.md`, `docs/10.5-server-prep.md`.
+- Пройдены тесты: read-only VibeCode Infra server metadata check; read-only runtime catalog check; read-only public `/health` pre-deploy check; `cd backend; pnpm run build:production`; `cd backend; pnpm run artifact:check`; `cd backend; pnpm run security:scan`; `cd dashboard-app; pnpm run security:scan`; temporary allowlisted archive dry run with forbidden entry count `0`.
+- Остались риски: shared management key should be rotated before Phase 11 deploy because it was pasted into chat; app key should preferably be rotated before deploy or immediately after first successful smoke; actual Gateway headers appear to be `X-Vibe-*`, while current backend production session mode expects signed `x-vibecode-*` headers, so user-context `/api/bootstrap` may need Phase 11/12 compatibility work; current public `/health` returns HTML from existing/default app until Phase 11 deploy; `SESSION_CONTEXT_HMAC_SECRET` must be generated outside the repository and supplied only through server-side deploy env.
+
 ## Phase 11. Deployment
 
 **Цель:** развернуть приложение на Black Hole или согласованном production-хостинге и проверить runtime smoke.
@@ -717,14 +765,14 @@
 - Изменить: `docs/09-qa-report.md`
 
 **Работы:**
-- [ ] Создать production app/deployment в выбранном хостинге.
-- [ ] Настроить HTTPS public URL.
-- [ ] Настроить env secrets только в серверном окружении.
-- [ ] Настроить healthcheck на `GET /health` и readiness на `GET /ready`, если хостинг поддерживает.
-- [ ] Задеплоить production artifact из Phase 10.
-- [ ] Проверить runtime logs на отсутствие секретов и персональных данных.
+- [x] Создать production app/deployment в выбранном хостинге.
+- [x] Настроить HTTPS public URL.
+- [x] Настроить env secrets только в серверном окружении.
+- [x] Настроить healthcheck на `GET /health` и readiness на `GET /ready`, если хостинг поддерживает.
+- [x] Задеплоить production artifact из Phase 10.
+- [x] Проверить runtime logs на отсутствие секретов и персональных данных.
 - [ ] Выполнить smoke: `/health`, `/ready`, frontend root, `/api/bootstrap`, `/api/dashboard` в тестовом пользовательском контексте.
-- [ ] Зафиксировать URL, версию, commit/artifact id, env profile без значений секретов и smoke results в `docs/11-deployment-report.md`.
+- [x] Зафиксировать URL, версию, commit/artifact id, env profile без значений секретов и smoke results в `docs/11-deployment-report.md`.
 
 **Критерии готовности:**
 - Production URL доступен по HTTPS.
@@ -743,6 +791,12 @@
 - Неверные allowed origins или frame-ancestors могут заблокировать iframe.
 - Env secrets могут быть настроены в неправильном окружении.
 - Black Hole timeouts/memory/cold start могут потребовать tuning.
+
+**Статус Phase 11 от 2026-07-23:**
+- Сделано: задеплоен artifact/commit `192c9bb` на Black Hole server `c318fdf4-8ac1-485d-8bfc-82eb87d2b872`; public HTTPS URL `https://app-b19d2b35af4a.vibecode.bitrix24.tech`; настроены runtime env names без записи secret values в repo; deploy response `success=true`, `status=running`; подтверждены `/health`, `/ready`, frontend root, JS/CSS assets, CORS/security headers и blocked-origin behavior; проверены runtime logs на известные secret patterns; временные Phase 11 access tokens отозваны.
+- Изменены файлы: `docs/11-deployment-report.md`, `docs/10-deployment-guide.md`, `docs/09-qa-report.md`, `docs/06-plan.md`.
+- Пройдены тесты: `cd backend; pnpm run build:production`; `cd backend; pnpm run test` (23 files, 87 tests); `cd backend; pnpm run artifact:check`; `cd backend; pnpm run security:scan`; `cd dashboard-app; pnpm run test` (8 files, 37 tests); `cd dashboard-app; pnpm run security:scan`; runtime smoke на production URL через краткоживущий Black Hole `api-bearer` token.
+- Остались риски: полный `/api/bootstrap` и `/api/dashboard` smoke с реальной пользовательской Bitrix24-сессией не выполнен без signed gateway handoff; текущий Black Hole `OWNER_ONLY` access policy блокирует anonymous direct access и может потребовать Phase 12 hosting/embedding настройки; app/management keys, переданные в chat, нужно ротировать после первого успешного smoke; frontend bundle сохраняет известный chunk size warning.
 
 ## Phase 12. Bitrix24 Embedding And Final Acceptance
 
@@ -795,7 +849,7 @@
 6. Phase 8 proves local integration between `dashboard-app/` and `backend/`.
 7. Phase 8.5 closes security, handoff, data-accuracy and production-surface audit findings before quality gates.
 8. Phase 9 is mandatory before any deployment.
-9. Phases 10, 11 and 12 are final packaging, deployment and Bitrix24 placement phases.
+9. Phase 10 packages the production artifact; Phase 10.5 prepares the server and secrets; Phases 11 and 12 are deployment and Bitrix24 placement phases.
 
 ## MVP Completion Checklist
 

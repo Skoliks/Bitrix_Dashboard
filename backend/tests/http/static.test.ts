@@ -51,6 +51,24 @@ describe('static frontend serving', () => {
     expect(await response.text()).toBe('console.log("app")')
   })
 
+  it('serves same-origin static assets when Vite crossorigin sends an Origin header', async () => {
+    const dist = createDist({
+      'index.html': '<!doctype html><div id="app">Dashboard</div>',
+      'assets/app.css': 'body{color:#111}'
+    })
+    const app = createApp(validEnv, {
+      staticAssets: createStaticAssetHandler({ root: dist })
+    })
+
+    const response = await app.fetch(new Request('https://dashboard.example.com/assets/app.css', {
+      headers: { Origin: 'https://dashboard.example.com' }
+    }))
+
+    expect(response.status).toBe(200)
+    expect(response.headers.get('content-type')).toContain('text/css')
+    expect(await response.text()).toBe('body{color:#111}')
+  })
+
   it('does not let SPA fallback intercept API or health routes', async () => {
     const dist = createDist({
       'index.html': '<!doctype html><div id="app">Dashboard</div>'

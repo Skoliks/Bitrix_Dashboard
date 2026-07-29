@@ -36,4 +36,10 @@ describe('phase 9 frontend quality gates', () => {
     expect(pkg.scripts['security:scan']).toContain('check-secrets.ps1')
     expect(pkg.scripts['license:scan']).toContain('check-licenses.ps1')
   })
+
+  it('does not gate the dashboard route behind top-level async setup', () => {
+    const page = read('src/pages/index.vue')
+
+    expect(page).not.toMatch(/^await\s+/m)
+  })
 })

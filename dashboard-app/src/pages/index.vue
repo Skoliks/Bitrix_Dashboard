@@ -71,13 +71,13 @@ const openDeal = (deal: RecentDealRowView) => {
   }
 }
 
-async function initPage() {
+function initPage() {
   if (isUseB24.value) {
     b24Instance.getFrame().parent.setTitle(t('page.index.seo.title'))
   }
 }
 
-await initPage()
+initPage()
 onMounted(() => {
   void salesDashboard.load()
 })
