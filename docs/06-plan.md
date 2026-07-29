@@ -1043,3 +1043,26 @@
   final visual acceptance in both themes remains an owner browser screenshot
   step because this workspace has no browser automation.
 - Detailed plan: `docs/superpowers/plans/2026-07-30-phase-14-1-dashboard-polish.md`.
+
+### Phase 14.1 Hotfix: Trend SVG Fill (Completed 2026-07-30)
+
+- Done: added an application-owned `fill: none` rule scoped to Unovis SVG
+  paths inside `.dashboard-trend-chart`. This prevents the browser default
+  black fill when the library runtime style is unavailable, while preserving
+  the existing blue Created and green Won lines.
+- Changed files: `dashboard-app/src/assets/css/main.css`,
+  `dashboard-app/tests/e2e/frontendQuality.spec.ts`, `docs/06-plan.md`, and
+  `docs/12.1-owner-demo-report.md`.
+- Passed checks: focused quality test `6/6`; frontend full tests `52/52`,
+  typecheck, lint, production build, secret scan, and license scan; backend
+  build, artifact check, and secret scan. The 71-entry release archive had
+  zero forbidden files. Production `/health`, `/ready`, root, and bootstrap
+  returned `200`; all four pipeline smoke requests returned non-empty trends
+  and stages. The temporary smoke token was revoked, and the 50-line log scan
+  found zero request-failure, credential, or PII patterns.
+- Remaining risks: final owner browser confirmation is required for both light
+  and dark themes because this workspace has no screenshot automation; the
+  existing large frontend chunk warning, owner-only deployment profile, key
+  rotation requirement, and 500-deal partial-aggregation limit remain.
+- Detailed design and plan: `docs/superpowers/specs/2026-07-30-trend-svg-fill-design.md`
+  and `docs/superpowers/plans/2026-07-30-trend-svg-fill.md`.
