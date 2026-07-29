@@ -10,7 +10,7 @@ import { useB24 } from '../composables/useB24'
 import type { DashboardFilterInput, DashboardFilters as DashboardFiltersModel } from '../types/dashboard'
 import DashboardEmptyState from '../components/dashboard/DashboardEmptyState.vue'
 import DashboardErrorState from '../components/dashboard/DashboardErrorState.vue'
-import DashboardFilters from '../components/dashboard/DashboardFilters.vue'
+import PipelineSelector from '../components/dashboard/PipelineSelector.vue'
 import DashboardSkeleton from '../components/dashboard/DashboardSkeleton.vue'
 import DashboardWarnings from '../components/dashboard/DashboardWarnings.vue'
 import KpiCards from '../components/dashboard/KpiCards.vue'
@@ -131,7 +131,7 @@ onMounted(() => {
         />
 
         <template v-else-if="dashboard">
-          <DashboardFilters
+          <PipelineSelector
             v-model="activeFilters"
             :references="dashboard.references"
             :loading="salesDashboard.isRefreshing.value"
@@ -169,7 +169,11 @@ onMounted(() => {
               />
               <TrendChart
                 :trend="dashboard.trend"
+                :filters="activeFilters"
+                :currencies="dashboard.references.currencies"
                 :loading="salesDashboard.isRefreshing.value"
+                @update:filters="activeFilters = $event"
+                @refresh="refreshDashboard"
               />
             </div>
 

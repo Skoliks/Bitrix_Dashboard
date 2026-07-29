@@ -64,6 +64,24 @@
     min-width: 0;
   }
 
+  .dashboard-pipeline-selector,
+  .dashboard-trend-filters,
+  .dashboard-trend-header {
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    gap: 8px;
+    min-width: 0;
+  }
+
+  .dashboard-trend-header {
+    justify-content: space-between;
+  }
+
+  .dashboard-trend-filters {
+    justify-content: flex-end;
+  }
+
   .dashboard-filter-control {
     min-width: min(220px, 100%);
   }

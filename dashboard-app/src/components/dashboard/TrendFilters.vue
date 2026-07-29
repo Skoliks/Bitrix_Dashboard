@@ -1,18 +1,12 @@
 <script setup lang="ts">
 import { computed } from 'vue'
-import type { BootstrapResponse, DashboardFilterInput, DashboardFilters, DatePreset } from '../../types/dashboard'
-import {
-  buildCategoryOptions,
-  buildCurrencyOptions,
-  buildFilterChange,
-  buildPeriodOptions,
-  canApplyCustomPeriod
-} from './dashboardViewModel'
 import RefreshIcon from '@bitrix24/b24icons-vue/outline/RefreshIcon'
+import type { BootstrapResponse, DashboardFilterInput, DashboardFilters, DatePreset } from '../../types/dashboard'
+import { buildCurrencyOptions, buildFilterChange, buildPeriodOptions, canApplyCustomPeriod } from './dashboardViewModel'
 
 const props = defineProps<{
   modelValue: DashboardFilters
-  references: Pick<BootstrapResponse, 'categories' | 'currencies'>
+  currencies: BootstrapResponse['currencies']
   loading?: boolean
 }>()
 
@@ -21,9 +15,8 @@ const emit = defineEmits<{
   refresh: [value: DashboardFilterInput]
 }>()
 
-const categoryOptions = computed(() => buildCategoryOptions(props.references.categories))
 const periodOptions = buildPeriodOptions()
-const currencyOptions = computed(() => buildCurrencyOptions(props.references.currencies))
+const currencyOptions = computed(() => buildCurrencyOptions(props.currencies))
 const canApply = computed(() => canApplyCustomPeriod(props.modelValue))
 
 const update = (patch: Partial<DashboardFilters>) => {
@@ -39,31 +32,17 @@ const refresh = () => {
     emit('refresh', props.modelValue)
   }
 }
-
-const updateCategory = (value: unknown) => update({ categoryId: Number(value) })
-const updatePreset = (value: unknown) => update({ preset: value as DatePreset })
-const updateCurrency = (value: unknown) => update({ currency: String(value) })
-const updateDateFrom = (value: unknown) => update({ dateFrom: String(value) })
-const updateDateTo = (value: unknown) => update({ dateTo: String(value) })
 </script>
 
 <template>
-  <div class="dashboard-filter-bar">
-    <B24Select
-      :model-value="modelValue.categoryId"
-      :items="categoryOptions"
-      :disabled="loading || categoryOptions.length === 0"
-      class="dashboard-filter-control"
-      aria-label="Воронка"
-      @update:model-value="updateCategory"
-    />
+  <div class="dashboard-trend-filters">
     <B24Select
       :model-value="modelValue.preset"
       :items="periodOptions"
       :disabled="loading"
       class="dashboard-filter-control"
       aria-label="Период"
-      @update:model-value="updatePreset"
+      @update:model-value="update({ preset: $event as DatePreset })"
     />
     <B24Select
       :model-value="modelValue.currency"
@@ -71,7 +50,7 @@ const updateDateTo = (value: unknown) => update({ dateTo: String(value) })
       :disabled="loading"
       class="dashboard-filter-control"
       aria-label="Валюта"
-      @update:model-value="updateCurrency"
+      @update:model-value="update({ currency: String($event) })"
     />
     <div v-if="modelValue.preset === 'custom'" class="dashboard-custom-period">
       <B24Input
@@ -79,27 +58,23 @@ const updateDateTo = (value: unknown) => update({ dateTo: String(value) })
         type="date"
         :disabled="loading"
         aria-label="Дата начала"
-        @update:model-value="updateDateFrom"
+        @update:model-value="update({ dateFrom: String($event) })"
       />
       <B24Input
         :model-value="modelValue.dateTo"
         type="date"
         :disabled="loading"
         aria-label="Дата окончания"
-        @update:model-value="updateDateTo"
+        @update:model-value="update({ dateTo: String($event) })"
       />
-      <B24Button
-        color="air-secondary"
-        :disabled="loading || !canApply"
-        @click="refresh"
-      >
+      <B24Button color="air-secondary" :disabled="loading || !canApply" @click="refresh">
         Применить
       </B24Button>
     </div>
     <B24Tooltip text="Обновить данные">
       <B24Button
         :icon="RefreshIcon"
-        color="air-primary"
+        color="air-tertiary"
         :loading="loading"
         :disabled="modelValue.preset === 'custom' && !canApply"
         aria-label="Обновить данные"

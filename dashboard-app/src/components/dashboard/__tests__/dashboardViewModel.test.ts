@@ -128,6 +128,19 @@ describe('dashboard view model', () => {
     expect(canApplyCustomPeriod({ ...baseFilters, preset: 'custom', dateFrom: '2026-07-01', dateTo: '2026-07-20' })).toBe(true)
   })
 
+  it('keeps the selected pipeline when period or currency changes', () => {
+    const filters = { ...dashboard.filters, categoryId: 2 }
+
+    expect(buildFilterChange(filters, { preset: 'last7' })).toEqual({
+      filters: { ...filters, preset: 'last7' },
+      shouldRefresh: true
+    })
+    expect(buildFilterChange(filters, { currency: 'USD' })).toEqual({
+      filters: { ...filters, currency: 'USD' },
+      shouldRefresh: true
+    })
+  })
+
   it('includes zero-count stages in funnel rows', () => {
     const rows = buildStageRows(dashboard.stageFunnel, bootstrap.stages, bootstrap.currencies, 0, {
       ...dashboard.meta,

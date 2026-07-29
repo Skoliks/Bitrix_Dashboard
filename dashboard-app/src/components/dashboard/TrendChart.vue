@@ -2,13 +2,21 @@
 import { computed, useTemplateRef } from 'vue'
 import { useElementSize } from '@vueuse/core'
 import { VisAxis, VisGroupedBar, VisTooltip, VisXYContainer } from '@unovis/vue'
-import type { DashboardResponse } from '../../types/dashboard'
+import type { BootstrapResponse, DashboardFilterInput, DashboardFilters, DashboardResponse } from '../../types/dashboard'
 import { formatDate } from './dashboardViewModel'
 import DashboardEmptyState from './DashboardEmptyState.vue'
+import TrendFilters from './TrendFilters.vue'
 
 const props = defineProps<{
   trend: DashboardResponse['trend']
+  filters: DashboardFilters
+  currencies: BootstrapResponse['currencies']
   loading?: boolean
+}>()
+
+const emit = defineEmits<{
+  'update:filters': [value: DashboardFilters]
+  refresh: [value: DashboardFilterInput]
 }>()
 
 const cardRef = useTemplateRef<HTMLElement | null>('cardRef')
@@ -28,13 +36,22 @@ const tickFormat = (index: number) => points.value[index] ? formatDate(points.va
 <template>
   <B24Card ref="cardRef" class="dashboard-card dashboard-analytics-card" :class="{ 'opacity-60': loading }">
     <template #header>
-      <div>
+      <div class="dashboard-trend-header">
+        <div>
         <h2 class="dashboard-section-title">
           Динамика сделок
         </h2>
         <p class="dashboard-muted">
           Созданные и выигранные сделки по периоду
         </p>
+        </div>
+        <TrendFilters
+          :model-value="filters"
+          :currencies="currencies"
+          :loading="loading"
+          @update:model-value="emit('update:filters', $event)"
+          @refresh="emit('refresh', $event)"
+        />
       </div>
     </template>
 

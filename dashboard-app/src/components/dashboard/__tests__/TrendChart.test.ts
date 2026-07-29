@@ -38,6 +38,8 @@ const category4Trend: DashboardResponse['trend'] = {
   ]
 }
 
+const filters = { categoryId: 0, preset: 'last30' as const, currency: 'all' as const }
+
 const mountedApps: Array<{ unmount: () => void; host: HTMLElement }> = []
 
 afterEach(() => {
@@ -53,7 +55,7 @@ describe('TrendChart', () => {
     const host = document.createElement('div')
     document.body.append(host)
     const app = createApp({
-      render: () => h(TrendChart, { trend: trend.value })
+      render: () => h(TrendChart, { trend: trend.value, filters, currencies: [] })
     })
     app.component('B24Card', {
       template: '<section><slot name="header" /><slot /></section>'
