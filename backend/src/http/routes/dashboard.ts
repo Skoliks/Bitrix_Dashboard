@@ -34,11 +34,19 @@ export const handleDashboard = async (
     categories: bootstrap.categories,
     currencies: bootstrap.currencies
   })
+  const dashboardBootstrap = filters.categoryId === bootstrap.defaults.categoryId
+    ? bootstrap
+    : await referenceDataService.getBootstrap({
+        portalId: session.publicContext.portalDomain,
+        ...(session.sessionToken ? { sessionToken: session.sessionToken } : {}),
+        ...(session.publicContext.userId ? { userId: session.publicContext.userId } : {}),
+        categoryId: filters.categoryId
+      })
   const range = resolveDateRange({
     preset: filters.preset,
     ...(filters.dateFrom ? { dateFrom: filters.dateFrom } : {}),
     ...(filters.dateTo ? { dateTo: filters.dateTo } : {}),
-    timeZone: bootstrap.timeZone,
+    timeZone: dashboardBootstrap.timeZone,
     now: new Date()
   })
   const queries = buildDashboardQueries({
@@ -62,14 +70,14 @@ export const handleDashboard = async (
   const dashboard = buildDashboardResponse({
     filters,
     references: {
-      categories: bootstrap.categories,
-      stages: bootstrap.stages,
-      currencies: bootstrap.currencies,
-      users: bootstrap.users,
-      timeZone: bootstrap.timeZone
+      categories: dashboardBootstrap.categories,
+      stages: dashboardBootstrap.stages,
+      currencies: dashboardBootstrap.currencies,
+      users: dashboardBootstrap.users,
+      timeZone: dashboardBootstrap.timeZone
     },
     range,
-    bootstrapWarnings: bootstrap.warnings,
+    bootstrapWarnings: dashboardBootstrap.warnings,
     aggregates: {
       openNow,
       openCreated,

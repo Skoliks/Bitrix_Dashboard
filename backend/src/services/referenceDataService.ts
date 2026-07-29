@@ -14,6 +14,7 @@ export interface BootstrapContext {
   portalId: string
   userId?: string
   sessionToken?: string
+  categoryId?: number
 }
 
 export interface ReferenceDataService {
@@ -56,7 +57,9 @@ export const createReferenceDataService = (config: ReferenceDataServiceConfig): 
         throw new AppError('CRM_ACCESS_DENIED', 'No accessible deal categories.', 403)
       }
 
-      const selectedCategoryId = selectDefaultCategory(categories)
+      const selectedCategoryId = categories.some(category => category.id === context.categoryId)
+        ? context.categoryId as number
+        : selectDefaultCategory(categories)
       const stageEntityId = selectedCategoryId === 0 ? 'DEAL_STAGE' : `DEAL_STAGE_${selectedCategoryId}`
 
       const [stages, currencies, usersResult] = await Promise.all([

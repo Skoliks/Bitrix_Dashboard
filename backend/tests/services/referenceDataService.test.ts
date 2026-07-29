@@ -127,6 +127,29 @@ describe('reference data service', () => {
     expect(client.getStatuses).toHaveBeenCalledWith({ entityId: 'DEAL_STAGE_2' })
   })
 
+  it('loads stage references for a requested available pipeline', async () => {
+    const client = createClient({
+      getDealCategories: vi.fn(async () => [
+        { id: 2, name: 'Projects', sort: 10, isLocked: false },
+        { id: 4, name: 'Automation', sort: 20, isLocked: false }
+      ]),
+      getStatuses: vi.fn(async ({ entityId }: { entityId: string }) => [
+        { id: 'C4:NEW', entityId, name: 'New automation deal', sort: 10, semantic: 'process' }
+      ])
+    })
+    const service = createReferenceDataService({
+      client,
+      cache: new MemoryCache(),
+      now: () => new Date('2026-07-22T05:00:00.000Z')
+    })
+
+    const bootstrap = await service.getBootstrap({ portalId: 'portal-selected', categoryId: 4 })
+
+    expect(bootstrap.defaults.categoryId).toBe(4)
+    expect(bootstrap.stages).toMatchObject([{ id: 'C4:NEW', entityId: 'DEAL_STAGE_4' }])
+    expect(client.getStatuses).toHaveBeenCalledWith({ entityId: 'DEAL_STAGE_4' })
+  })
+
   it('returns USERS_UNAVAILABLE warning when users endpoint fails', async () => {
     const client = createClient({
       getUsers: vi.fn(async () => {

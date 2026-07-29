@@ -97,6 +97,42 @@ describe('dashboard route', () => {
     }))
   })
 
+  it('loads stage references for the selected category after validating filters', async () => {
+    const defaultBootstrap: BootstrapResponse = {
+      ...bootstrap,
+      categories: [
+        { id: 2, name: 'Projects', sort: 10, isLocked: false },
+        { id: 4, name: 'Automation', sort: 20, isLocked: false }
+      ],
+      stages: [{ id: 'C2:NEW', entityId: 'DEAL_STAGE_2', name: 'New project', sort: 10, semantic: 'process' }],
+      defaults: { ...bootstrap.defaults, categoryId: 2 }
+    }
+    const selectedBootstrap: BootstrapResponse = {
+      ...defaultBootstrap,
+      stages: [{ id: 'C4:NEW', entityId: 'DEAL_STAGE_4', name: 'New automation deal', sort: 10, semantic: 'process' }],
+      defaults: { ...defaultBootstrap.defaults, categoryId: 4 }
+    }
+    const referenceDataService = {
+      getBootstrap: vi.fn()
+        .mockResolvedValueOnce(defaultBootstrap)
+        .mockResolvedValueOnce(selectedBootstrap)
+    }
+    const app = createApp(validEnv, { referenceDataService, vibeCodeClient: createClient() })
+
+    const response = await app.fetch(new Request('http://localhost/api/dashboard?categoryId=4', {
+      headers: provisionalHeaders()
+    }))
+    const body = await response.json()
+
+    expect(response.status).toBe(200)
+    expect(body.references.stages).toMatchObject([{ id: 'C4:NEW', entityId: 'DEAL_STAGE_4' }])
+    expect(referenceDataService.getBootstrap).toHaveBeenLastCalledWith({
+      portalId: 'portal.bitrix24.com',
+      sessionToken: 'vibe_session_secret',
+      categoryId: 4
+    })
+  })
+
   it('propagates USERS_UNAVAILABLE as a partial dashboard warning', async () => {
     const referenceDataService = {
       getBootstrap: vi.fn(async () => ({
