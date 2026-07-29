@@ -98,6 +98,47 @@ describe('loadConfig', () => {
     expect(config.publicConfig.sessionContextMode).toBe('gateway-headers')
   })
 
+  it('accepts the production owner demo profile with a personal API key', () => {
+    const config = loadConfig({
+      ...validEnv,
+      NODE_ENV: 'production',
+      VIBECODE_APP_KEY: undefined,
+      VIBECODE_API_KEY: 'vibe_api_owner_secret',
+      VIBECODE_API_BASE_URL: 'https://vibecode.bitrix24.tech',
+      BITRIX24_ALLOWED_ORIGINS: 'https://portal.bitrix24.ru',
+      SESSION_CONTEXT_MODE: 'owner-api-key',
+      OWNER_DEMO_PORTAL: 'portal.bitrix24.ru'
+    })
+
+    expect(config).toMatchObject({
+      isValid: true,
+      vibeCodeApiKey: 'vibe_api_owner_secret',
+      sessionContext: { mode: 'owner-api-key', ownerDemoPortal: 'portal.bitrix24.ru' }
+    })
+    expect(config.publicConfig).not.toHaveProperty('ownerDemoPortal')
+  })
+
+  it.each([
+    ['missing personal key', { VIBECODE_API_KEY: undefined }],
+    ['missing owner portal', { OWNER_DEMO_PORTAL: undefined }],
+    ['mismatched portal', { OWNER_DEMO_PORTAL: 'other.bitrix24.ru' }]
+  ])('rejects owner demo profile with %s', (_name, patch) => {
+    const config = loadConfig({
+      ...validEnv,
+      NODE_ENV: 'production',
+      VIBECODE_APP_KEY: undefined,
+      VIBECODE_API_KEY: 'vibe_api_owner_secret',
+      VIBECODE_API_BASE_URL: 'https://vibecode.bitrix24.tech',
+      BITRIX24_ALLOWED_ORIGINS: 'https://portal.bitrix24.ru',
+      SESSION_CONTEXT_MODE: 'owner-api-key',
+      OWNER_DEMO_PORTAL: 'portal.bitrix24.ru',
+      ...patch
+    })
+
+    expect(config).toMatchObject({ isValid: false })
+    expect(JSON.stringify(config)).not.toContain('vibe_api_owner_secret')
+  })
+
   it('rejects arbitrary VibeCode API endpoints in production', () => {
     const config = loadConfig({
       ...validEnv,

@@ -13,6 +13,7 @@ export interface SessionContext {
 export interface SessionContextConfig {
   mode: SessionContextMode
   hmacSecret?: string
+  ownerDemoPortal?: string
   now?: Date
   signedHeaderMaxAgeSeconds?: number
   signedHeaderClockSkewSeconds?: number
@@ -22,6 +23,10 @@ const defaultSignedHeaderMaxAgeSeconds = 600
 const defaultSignedHeaderClockSkewSeconds = 300
 
 export const readSessionContext = (request: Request, config: SessionContextConfig): SessionContext => {
+  if (config.mode === 'owner-api-key') {
+    return readOwnerDemoContext(config)
+  }
+
   if (config.mode === 'signed-headers') {
     return readSignedHeaders(request, config)
   }
@@ -32,6 +37,10 @@ export const readSessionContext = (request: Request, config: SessionContextConfi
 
   return readProvisionalHeaders(request)
 }
+
+const readOwnerDemoContext = (config: SessionContextConfig): SessionContext => ({
+  publicContext: config.ownerDemoPortal ? { portalDomain: config.ownerDemoPortal } : {}
+})
 
 const readProvisionalHeaders = (request: Request): SessionContext => {
   const authorization = request.headers.get('authorization')

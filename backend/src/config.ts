@@ -2,7 +2,7 @@ import { AppError } from './http/errors.js'
 
 export type RuntimeMode = 'development' | 'test' | 'production'
 export type LogLevel = 'debug' | 'info' | 'warn' | 'error' | 'silent'
-export type SessionContextMode = 'provisional-headers' | 'signed-headers' | 'gateway-headers'
+export type SessionContextMode = 'provisional-headers' | 'signed-headers' | 'gateway-headers' | 'owner-api-key'
 
 export interface PublicConfig {
   allowedOrigins: string[]
@@ -16,10 +16,12 @@ export interface PublicConfig {
 
 export interface AppConfig {
   vibeCodeAppKey: string
+  vibeCodeApiKey: string
   vibeCodeApiBaseUrl: URL
   sessionContext: {
     mode: SessionContextMode
     hmacSecret?: string
+    ownerDemoPortal?: string
   }
   publicConfig: PublicConfig
 }
@@ -32,18 +34,19 @@ type Env = Record<string, string | undefined>
 
 const runtimeModes = new Set<RuntimeMode>(['development', 'test', 'production'])
 const logLevels = new Set<LogLevel>(['debug', 'info', 'warn', 'error', 'silent'])
-const sessionContextModes = new Set<SessionContextMode>(['provisional-headers', 'signed-headers', 'gateway-headers'])
+const sessionContextModes = new Set<SessionContextMode>(['provisional-headers', 'signed-headers', 'gateway-headers', 'owner-api-key'])
 
 export const loadConfig = (env: Env = process.env): ConfigResult => {
   const errors: string[] = []
-  const appKey = readRequired(env, 'VIBECODE_APP_KEY', errors)
+  const nodeEnv = readEnum(env.NODE_ENV, runtimeModes, 'development', 'NODE_ENV', errors)
+  const sessionContextMode = readSessionContextMode(env, nodeEnv, errors)
+  const apiKey = readRequired(env, sessionContextMode === 'owner-api-key' ? 'VIBECODE_API_KEY' : 'VIBECODE_APP_KEY', errors)
   const apiBaseUrl = readUrl(env, 'VIBECODE_API_BASE_URL', errors)
   const appPublicUrl = readUrl(env, 'APP_PUBLIC_URL', errors)
-  const nodeEnv = readEnum(env.NODE_ENV, runtimeModes, 'development', 'NODE_ENV', errors)
   validateProductionVibeCodeEndpoint(apiBaseUrl, nodeEnv, errors)
   const allowedOrigins = readOrigins(env, nodeEnv, errors)
-  const sessionContextMode = readSessionContextMode(env, nodeEnv, errors)
   const sessionContextHmacSecret = readSessionContextHmacSecret(env, sessionContextMode, errors)
+  const ownerDemoPortal = readOwnerDemoPortal(env, sessionContextMode, nodeEnv, allowedOrigins, errors)
   const logLevel = readEnum(env.LOG_LEVEL, logLevels, 'info', 'LOG_LEVEL', errors)
   const deploymentVersion = env.DEPLOYMENT_VERSION?.trim() || 'local'
   const port = readPort(env.PORT, errors)
@@ -61,18 +64,20 @@ export const loadConfig = (env: Env = process.env): ConfigResult => {
     publicConfig.appPublicUrl = appPublicUrl.origin
   }
 
-  if (errors.length > 0 || !appKey || !apiBaseUrl || !appPublicUrl || allowedOrigins.length === 0) {
+  if (errors.length > 0 || !apiKey || !apiBaseUrl || !appPublicUrl || allowedOrigins.length === 0) {
     return { isValid: false, errors, publicConfig }
   }
 
   return {
     isValid: true,
     errors: [],
-    vibeCodeAppKey: appKey,
+    vibeCodeAppKey: apiKey,
+    vibeCodeApiKey: apiKey,
     vibeCodeApiBaseUrl: apiBaseUrl,
     sessionContext: {
       mode: sessionContextMode,
-      ...(sessionContextHmacSecret ? { hmacSecret: sessionContextHmacSecret } : {})
+      ...(sessionContextHmacSecret ? { hmacSecret: sessionContextHmacSecret } : {}),
+      ...(ownerDemoPortal ? { ownerDemoPortal } : {})
     },
     publicConfig: {
       allowedOrigins,
@@ -224,6 +229,49 @@ const readSessionContextHmacSecret = (
   }
 
   return value || undefined
+}
+
+const readOwnerDemoPortal = (
+  env: Env,
+  mode: SessionContextMode,
+  nodeEnv: RuntimeMode,
+  allowedOrigins: string[],
+  errors: string[]
+): string | undefined => {
+  if (mode !== 'owner-api-key') {
+    return undefined
+  }
+
+  if (nodeEnv !== 'production') {
+    errors.push('SESSION_CONTEXT_MODE=owner-api-key is only allowed in production')
+  }
+
+  const value = env.OWNER_DEMO_PORTAL?.trim().toLowerCase()
+  if (!value) {
+    errors.push('OWNER_DEMO_PORTAL is required when SESSION_CONTEXT_MODE=owner-api-key')
+    return undefined
+  }
+
+  let portal: URL
+  try {
+    portal = new URL(`https://${value}`)
+  } catch {
+    errors.push('OWNER_DEMO_PORTAL must be a valid portal domain')
+    return undefined
+  }
+
+  if (portal.hostname !== value || portal.pathname !== '/' || portal.search || portal.hash) {
+    errors.push('OWNER_DEMO_PORTAL must be a portal domain without a path')
+    return undefined
+  }
+
+  const allowedOrigin = allowedOrigins[0]
+  if (allowedOrigins.length !== 1 || !allowedOrigin || new URL(allowedOrigin).hostname !== portal.hostname) {
+    errors.push('OWNER_DEMO_PORTAL must match the single BITRIX24_ALLOWED_ORIGINS host')
+    return undefined
+  }
+
+  return portal.hostname
 }
 
 const readPort = (value: string | undefined, errors: string[]): number => {

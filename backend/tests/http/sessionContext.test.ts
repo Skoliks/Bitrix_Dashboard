@@ -49,6 +49,19 @@ describe('session context', () => {
     })
   })
 
+  it('uses only the configured portal in owner demo mode', () => {
+    const context = readSessionContext(new Request('http://localhost/api', {
+      headers: {
+        authorization: 'Bearer forged',
+        'x-bitrix24-domain': 'evil.bitrix24.ru',
+        'x-vibe-authorization': 'Bearer forged_gateway',
+        'x-vibe-user-id': '999'
+      }
+    }), { mode: 'owner-api-key', ownerDemoPortal: 'portal.bitrix24.ru' })
+
+    expect(context).toEqual({ publicContext: { portalDomain: 'portal.bitrix24.ru' } })
+  })
+
   it('accepts signed gateway session handoff', () => {
     const sessionToken = 'vibe_session_secret'
     const portalDomain = 'portal.bitrix24.com'
