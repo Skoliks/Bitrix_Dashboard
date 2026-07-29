@@ -50,7 +50,7 @@ describe('VibeCode client', () => {
   it('reads the portal from /v1/me without a bearer session', async () => {
     const fetchImpl = vi.fn(async () => successResponse({
       success: true,
-      data: { portal: 'portal.bitrix24.ru', currentUser: null }
+      data: { portal: 'portal.bitrix24.ru' }
     }))
     const client = createVibeCodeClient({
       apiBaseUrl: new URL('https://vibecode.example.com/v1/'),
@@ -63,6 +63,47 @@ describe('VibeCode client', () => {
     expect(url.toString()).toBe('https://vibecode.example.com/v1/me')
     expect(new Headers(init.headers).get('x-api-key')).toBe('vibe_api_owner_secret')
     expect(new Headers(init.headers).get('authorization')).toBeNull()
+  })
+
+  it('accepts nullable Bitrix24 user fields and stage metadata from a personal API key', async () => {
+    const fetchImpl = vi
+      .fn()
+      .mockResolvedValueOnce(successResponse({
+        success: true,
+        data: [{
+          id: 1,
+          entityId: 'DEAL_STAGE_2',
+          statusId: 'C2:NEW',
+          name: 'New',
+          nameInit: null,
+          sort: 10,
+          system: false,
+          semantics: null,
+          extra: { SEMANTICS: null, COLOR: null }
+        }]
+      }))
+      .mockResolvedValueOnce(successResponse({
+        success: true,
+        data: [{ id: 1, active: true, name: null, lastName: null, email: 'owner@example.test', timeZone: 'Asia/Yakutsk' }]
+      }))
+    const client = createVibeCodeClient({
+      apiBaseUrl: new URL('https://vibecode.example.com/v1/'),
+      apiKey: 'vibe_api_owner_secret',
+      fetchImpl
+    })
+
+    await expect(client.getStatuses({ entityId: 'DEAL_STAGE_2' })).resolves.toEqual([{
+      id: 'C2:NEW',
+      entityId: 'DEAL_STAGE_2',
+      name: 'New',
+      sort: 10,
+      semantic: null
+    }])
+    await expect(client.getUsers()).resolves.toEqual([{
+      id: 1,
+      active: true,
+      timeZone: 'Asia/Yakutsk'
+    }])
   })
 
   it('accepts only typed search and aggregate request bodies at compile time', () => {

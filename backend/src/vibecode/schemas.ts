@@ -65,25 +65,25 @@ export const externalStageSchema = z.object({
   entityId: z.string(),
   statusId: z.string(),
   name: z.string(),
-  nameInit: z.string().optional(),
+  nameInit: z.string().nullable().optional(),
   sort: z.number(),
   system: z.boolean(),
   color: z.string().optional(),
   semantics: z.string().nullable(),
   categoryId: z.number().optional(),
   extra: z.object({
-    SEMANTICS: z.string().optional(),
-    COLOR: z.string().optional()
+    SEMANTICS: z.string().nullable().optional(),
+    COLOR: z.string().nullable().optional()
   }).passthrough().optional()
 }).passthrough()
 
 export const externalUserSchema = z.object({
   id: z.number(),
   active: z.boolean(),
-  name: z.string().optional(),
-  lastName: z.string().optional(),
-  email: z.string().optional(),
-  timeZone: z.string().optional(),
+  name: z.string().nullable().optional(),
+  lastName: z.string().nullable().optional(),
+  email: z.string().nullable().optional(),
+  timeZone: z.string().nullable().optional(),
   userType: z.string().optional()
 }).passthrough()
 
@@ -141,7 +141,7 @@ export const currentUserResponseSchema = successResponseSchema(z.object({
   portal: z.string().min(1),
   currentUser: z.object({
     bitrixUserId: z.string().min(1)
-  }).nullable()
+  }).nullable().optional()
 }).passthrough())
 
 export const guideResponseSchema = successResponseSchema(z.object({
