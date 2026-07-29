@@ -13,7 +13,6 @@ vi.mock('@unovis/vue', async () => {
   })
 
   return {
-    VisArea: primitive,
     VisAxis: primitive,
     VisLine: primitive,
     VisLineSelectors: { line: '.vis-line' },

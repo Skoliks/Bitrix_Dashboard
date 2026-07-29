@@ -44,8 +44,10 @@ const layerWidth = (index: number, total: number) => `${Math.max(60, 100 - (inde
         :style="{ width: layerWidth(index, rows.length), backgroundColor: row.color || 'var(--ui-color-accent-main-primary)' }"
         :aria-label="`${row.name}: ${row.count}`"
       >
-        <span class="dashboard-funnel-name" :title="row.name">{{ row.name }}</span>
-        <span class="dashboard-funnel-count">{{ row.count }}</span>
+        <div data-test="funnel-layer-content" class="dashboard-funnel-layer-content">
+          <span class="dashboard-funnel-name" :title="row.name">{{ row.name }}</span>
+          <span class="dashboard-funnel-count">{{ row.count }}</span>
+        </div>
         <span v-if="row.money.length" class="dashboard-funnel-money">
           <span v-for="line in row.money" :key="line">{{ line }}</span>
         </span>

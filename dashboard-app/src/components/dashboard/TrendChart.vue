@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import { computed, ref, useTemplateRef } from 'vue'
 import { useElementSize } from '@vueuse/core'
-import { VisArea, VisAxis, VisLine, VisLineSelectors, VisTooltip, VisXYContainer } from '@unovis/vue'
+import { VisAxis, VisLine, VisLineSelectors, VisTooltip, VisXYContainer } from '@unovis/vue'
 import type { BootstrapResponse, DashboardFilterInput, DashboardFilters, DashboardResponse } from '../../types/dashboard'
 import { formatDate, formatMoneyList } from './dashboardViewModel'
 import DashboardEmptyState from './DashboardEmptyState.vue'
@@ -122,12 +122,11 @@ const tooltipTriggers = computed(() => ({
           :width="Math.max(1, trendLayout.width)"
           class="dashboard-trend-chart"
         >
-          <VisArea :x="x" :y="y" :color="seriesColor" />
           <VisLine
             :x="x"
             :y="y"
             :color="seriesColor"
-            :line-width="3"
+            :line-width="2"
           />
           <VisAxis type="x" :x="x" :tick-format="tickFormat" />
           <VisAxis type="y" :y="y" :tick-format="yTickFormat" />

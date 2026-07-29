@@ -47,4 +47,16 @@ describe('phase 9 frontend quality gates', () => {
     expect(read('vite.config.ts')).toContain("colorModeInitialValue: 'light'")
     expect(read('src/layouts/default.vue')).not.toContain('B24DashboardSidebar')
   })
+
+  it('keeps the dashboard trend line-only and bounded by its viewport', () => {
+    const trend = read('src/components/dashboard/TrendChart.vue')
+    const styles = read('src/assets/css/main.css')
+
+    expect(trend).toContain('VisLine')
+    expect(trend).not.toContain('VisArea')
+    expect(styles).toMatch(/\.dashboard-shell\s*\{[^}]*max-width:\s*100%[^}]*overflow-x:\s*clip/s)
+    expect(styles).toMatch(/\.dashboard-trend-viewport\s*\{[^}]*max-width:\s*100%[^}]*overflow:\s*hidden/s)
+    expect(styles).toMatch(/\.dashboard-trend-chart\s*\{[^}]*height:\s*380px/s)
+    expect(styles).toContain('--vis-axis-grid-color')
+  })
 })

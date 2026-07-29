@@ -26,6 +26,8 @@
     flex-direction: column;
     gap: 16px;
     min-width: 0;
+    max-width: 100%;
+    overflow-x: clip;
   }
 
   .dashboard-page-header {
@@ -132,15 +134,20 @@
   .dashboard-analytics-grid {
     display: grid;
     grid-template-columns: minmax(250px, 1fr) minmax(0, 2fr);
+    align-items: start;
     gap: 12px;
     min-width: 0;
     max-width: 100%;
   }
 
   .dashboard-analytics-card {
-    min-height: 330px;
+    min-height: 0;
     max-width: 100%;
     overflow: hidden;
+  }
+
+  .dashboard-trend-card {
+    min-height: 480px;
   }
 
   .dashboard-section-title {
@@ -159,33 +166,41 @@
   .dashboard-funnel {
     display: grid;
     align-content: start;
-    gap: 6px;
+    gap: 4px;
   }
 
   .dashboard-funnel-layer {
     display: grid;
-    grid-template-columns: minmax(0, 1fr) auto;
-    align-items: center;
-    gap: 2px 8px;
-    min-height: 54px;
+    place-items: center;
+    gap: 2px;
+    min-height: 42px;
     margin-inline: auto;
-    padding: 10px 18px;
+    padding: 6px 18px;
     clip-path: polygon(8% 0, 92% 0, 100% 100%, 0 100%);
     color: #fff;
     min-width: 0;
+    text-align: center;
     text-shadow: 0 1px 2px rgb(0 0 0 / 35%);
   }
 
+  .dashboard-funnel-layer-content,
   .dashboard-funnel-money,
   .dashboard-chart-legend {
     display: flex;
     align-items: center;
-    justify-content: space-between;
+    justify-content: center;
     gap: 8px;
     min-width: 0;
   }
 
+  .dashboard-funnel-layer-content {
+    flex-wrap: wrap;
+    width: 100%;
+  }
+
   .dashboard-funnel-name {
+    display: block;
+    max-width: calc(100% - 40px);
     overflow: hidden;
     color: inherit;
     font-size: 13px;
@@ -201,20 +216,16 @@
   }
 
   .dashboard-funnel-money {
-    grid-column: 1 / -1;
-    justify-content: flex-start;
     flex-wrap: wrap;
     color: inherit;
     font-size: 12px;
   }
 
   .dashboard-funnel-description {
-    grid-column: 1 / -1;
     font-size: 11px;
   }
 
-  .dashboard-trend-content,
-  .dashboard-trend-viewport {
+  .dashboard-trend-content {
     width: 100%;
     min-width: 0;
     max-width: 100%;
@@ -233,14 +244,24 @@
   }
 
   .dashboard-trend-viewport {
+    width: 100%;
+    min-width: 0;
+    max-width: 100%;
     overflow: hidden;
   }
 
   .dashboard-trend-chart {
+    --vis-axis-grid-color: rgb(148 163 184 / 35%);
+    --vis-axis-grid-opacity: 1;
+    --vis-axis-tick-color: rgb(148 163 184 / 45%);
+    --vis-axis-tick-label-color: var(--b24ui-typography-label-color);
+    --vis-dark-axis-grid-color: rgb(148 163 184 / 35%);
+    --vis-dark-axis-tick-color: rgb(148 163 184 / 45%);
+    --vis-dark-axis-tick-label-color: var(--b24ui-typography-label-color);
     width: 100%;
     min-width: 0;
     max-width: 100%;
-    height: 280px;
+    height: 380px;
   }
 
   .dashboard-table-scroll {
@@ -303,6 +324,10 @@
     .dashboard-page-header h1 {
       font-size: 22px;
     }
+
+    .dashboard-trend-chart {
+      height: 320px;
+    }
   }
 
   @media (max-width: 520px) {
@@ -314,6 +339,10 @@
 
     .dashboard-kpi-grid {
       grid-template-columns: 1fr;
+    }
+
+    .dashboard-trend-chart {
+      height: 280px;
     }
   }
 }

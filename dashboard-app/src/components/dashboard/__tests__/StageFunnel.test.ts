@@ -41,6 +41,7 @@ describe('StageFunnel', () => {
     mountedApps.push({ unmount: () => app.unmount(), host })
 
     expect(host.querySelectorAll('[data-test="funnel-layer"]')).toHaveLength(3)
+    expect(host.querySelectorAll('[data-test="funnel-layer-content"]')).toHaveLength(3)
     expect(host.textContent).toContain('Proposal')
     expect(host.textContent).toContain('0')
   })

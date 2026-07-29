@@ -20,5 +20,7 @@ describe('trend view model', () => {
   it('uses the available chart width and reduces labels for dense ranges', () => {
     expect(buildTrendLayout(7, 360)).toEqual({ width: 360, labelEvery: 2 })
     expect(buildTrendLayout(30, 360)).toEqual({ width: 360, labelEvery: 8 })
+    expect(buildTrendLayout(90, 359.9).width).toBeLessThanOrEqual(359)
+    expect(buildTrendLayout(30, -1).width).toBe(0)
   })
 })
