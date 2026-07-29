@@ -1001,3 +1001,45 @@
   snapshot `v11` is live. Final visual acceptance in a browser remains the
   owner's screenshot step because no local browser automation is installed.
 - Detailed plan: `docs/superpowers/plans/2026-07-29-phase-14-dashboard-ui.md`.
+
+## Phase 14.1: Dashboard Visual Polish (Completed 2026-07-30)
+
+- Done: the trend now renders exactly one opaque smooth line with no area,
+  gradient, or fill. Created remains blue and Won green. The chart surface is
+  transparent, uses thin neutral Unovis grid and axis styles, has a 380px
+  desktop canvas, and scales down at the existing responsive breakpoints.
+- Done: the dashboard shell, analytics grid, card, and trend viewport now have
+  explicit shrink and overflow boundaries. The graph therefore measures only
+  its available card width and cannot push the page horizontally for `last7`,
+  `last30`, `last90`, `currentMonth`, or `previousMonth`.
+- Done: funnel layers are more compact. Each trapezoid has a centered primary
+  row containing the stage name and count, with the money row centered below.
+  Cards align to their natural heights, so the taller trend no longer forces
+  unused vertical space into the funnel card.
+- Changed files: `dashboard-app/src/assets/css/main.css`,
+  `dashboard-app/src/components/dashboard/{TrendChart,StageFunnel}.vue`,
+  `dashboard-app/src/components/dashboard/__tests__/{TrendChart,StageFunnel,trendViewModel}.test.ts`,
+  `dashboard-app/tests/e2e/frontendQuality.spec.ts`,
+  `docs/06-plan.md`, and `docs/12.1-owner-demo-report.md`.
+- Passed checks: focused frontend regression tests `10/10`; frontend full
+  tests `52/52`, typecheck, lint, production build, secret scan, and license
+  scan; backend full tests `110/110`, typecheck, lint, build, artifact check,
+  secret scan, and license scan. The 71-entry allowlisted deployment archive
+  had zero forbidden entries. Production `/health`, `/ready`, frontend root,
+  and bootstrap returned `200`; 20 dashboard requests (four categories across
+  five date presets) all returned non-empty trend and stage data. The temporary
+  smoke token was revoked, and the 50-line log scan found no request failures,
+  credentials, or PII patterns.
+- Deployment note: the first clean deploy exposed that `/opt/app/.env` is
+  removed by `cleanDeploy`. The same archive was redeployed with the required
+  owner-demo environment supplied only in the Infra deploy request; no secret
+  values were written to repository files. `DEPLOYMENT_VERSION` now identifies
+  the release as `af8f877`.
+- Remaining risks: owner-demo mode is still single-owner and not client
+  integration; the previously shared personal key must be rotated; selected
+  category snapshots remain intentionally partial at 500 deals until
+  pagination exists; the existing large frontend chunk warning remains; every
+  future `cleanDeploy` must explicitly supply the required server-side env;
+  final visual acceptance in both themes remains an owner browser screenshot
+  step because this workspace has no browser automation.
+- Detailed plan: `docs/superpowers/plans/2026-07-30-phase-14-1-dashboard-polish.md`.
