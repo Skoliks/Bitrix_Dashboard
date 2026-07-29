@@ -207,7 +207,7 @@ const selectTrendBucket = (dateFrom: string, dateTo: string): DashboardResponse[
   if (days > 180) {
     return 'month'
   }
-  if (days > 45) {
+  if (days > 14) {
     return 'week'
   }
   return 'day'

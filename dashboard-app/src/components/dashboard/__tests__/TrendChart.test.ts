@@ -13,8 +13,10 @@ vi.mock('@unovis/vue', async () => {
   })
 
   return {
+    VisArea: primitive,
     VisAxis: primitive,
-    VisGroupedBar: primitive,
+    VisLine: primitive,
+    VisLineSelectors: { line: '.vis-line' },
     VisTooltip: primitive,
     VisXYContainer: container
   }
@@ -60,11 +62,24 @@ describe('TrendChart', () => {
     app.component('B24Card', {
       template: '<section><slot name="header" /><slot /></section>'
     })
+    app.component('B24Button', {
+      template: '<button><slot /></button>'
+    })
+    app.component('B24Input', {
+      template: '<input />'
+    })
+    app.component('B24Select', {
+      template: '<select />'
+    })
+    app.component('B24Tooltip', {
+      template: '<span><slot /></span>'
+    })
     app.mount(host)
     mountedApps.push({ unmount: () => app.unmount(), host })
 
     expect(host.querySelector('[data-test="trend-point-count"]')?.textContent).toBe('2')
     expect(host.querySelector('[data-test="trend-periods"]')?.textContent).toContain('2026-07-01')
+    expect(host.querySelector('[data-test="trend-viewport"]')).not.toBeNull()
 
     trend.value = category4Trend
     await nextTick()

@@ -61,7 +61,7 @@ describe('aggregation service', () => {
     ])
     expect(response.recentDeals.map(row => row.id)).toEqual([1, 4, 2])
     expect(response.recentDeals[0]).toMatchObject({ assignedName: 'Manager One' })
-    expect(response.trend.points).toContainEqual(expect.objectContaining({ period: '2026-07-31', createdCount: 1, wonCount: 1 }))
+    expect(response.trend.points).toContainEqual(expect.objectContaining({ period: '2026-07-27', createdCount: 1, wonCount: 1 }))
   })
 
   it('does not count a process deal with a planned close date as won', () => {
@@ -101,6 +101,17 @@ describe('aggregation service', () => {
     expect(response.trend.bucket).toBe('day')
     expect(response.trend.points).toHaveLength(7)
     expect(response.trend.points).toContainEqual({ period: '2026-07-03', createdCount: 0, wonCount: 0, wonAmountsByCurrency: [] })
+  })
+
+  it('uses weekly buckets from 15 through 180 days', () => {
+    const response = buildDashboardResponse({
+      ...baseInput,
+      deals: [deal({ id: 1, createdAt: '2026-07-02T10:00:00.000Z' })],
+      snapshotTruncated: false
+    })
+
+    expect(response.trend.bucket).toBe('week')
+    expect(response.trend.points).toContainEqual(expect.objectContaining({ period: '2026-06-29', createdCount: 1 }))
   })
 
   it('uses month buckets for long ranges and portal-local dates for short ranges', () => {
