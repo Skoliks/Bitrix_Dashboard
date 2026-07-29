@@ -870,4 +870,12 @@
 - [x] Production artifact excludes secrets, raw fixtures and reference folders.
 - [ ] Production deployment is live.
 - [ ] Bitrix24 left-menu placement is verified.
-- [ ] Acceptance reports are saved in `docs/`.
+- [x] Acceptance reports are saved in `docs/`.
+
+## Phase 12 Execution Status (2026-07-29)
+
+- Done: production was updated to `7420c0c`; the backend now supports the VibeCode Gateway session handoff, an application icon was uploaded, the favicon uses `/_gw/icon`, and the production URL passed technical runtime smoke.
+- Done: confirmed OAuth application scopes are `crm`, `user_brief`, and `placement`; the production access mode is `READWRITE`.
+- Changed files: `backend/src/config.ts`, `backend/src/session/context.ts`, `backend/src/session/resolve.ts`, `backend/src/vibecode/client.ts`, `backend/src/vibecode/schemas.ts`, `backend/src/http/app.ts`, `backend/src/http/routes/bootstrap.ts`, `backend/src/http/routes/dashboard.ts`, related backend tests, `dashboard-app/index.html`, `assets/dashboard-funnel-icon.svg`, `docs/11-deployment-report.md`, `docs/12-acceptance-report.md`, and `docs/12-handoff.md`.
+- Passed checks: backend lint, typecheck, 94 backend tests, 39 frontend tests, production build, artifact check, secret scan, deploy healthcheck, production runtime smoke, icon smoke, token-revocation check, and runtime-log secret-pattern check.
+- Remaining external blocker: no Bitrix24 user OAuth session was available to bind `LEFT_MENU`; VibeCode reports zero registered placements and requires an active Marketplace subscription for binding. Real left-menu, CRM-rights, restricted-user, missing-scope, click-to-open, and full iframe UI acceptance remain pending.

@@ -101,3 +101,13 @@ Runtime logs were fetched through the VibeCode Infra API after smoke. The inspec
 - Current Black Hole access policy is `OWNER_ONLY`. Phase 12 Bitrix24 embedding may require changing hosting access or using the platform-approved embedding path before iframe acceptance can pass.
 - The app and management keys were provided in chat before deploy. They are not stored in repo files, but they should be rotated after the first successful runtime smoke.
 - Frontend production build still emits the known chunk size warning for the large JS/CSS bundle. This is a performance risk, not a Phase 11 deploy blocker.
+
+## Phase 12 Runtime Update
+
+Date: 2026-07-29
+
+- Production was updated to commit `7420c0c`, VibeCode source snapshot `v4`.
+- `SESSION_CONTEXT_MODE` is now `gateway-headers`. The backend accepts the platform Gateway bearer only through `X-Vibe-Authorization`, then resolves the authenticated portal and user server-side with `/v1/me`.
+- `/health`, `/ready`, `/`, and `/_gw/icon` passed production smoke. The root contains `id="app"` and links to the platform favicon. `/api/bootstrap` and `/api/dashboard` without a real Gateway user session returned JSON `401 AUTH_REQUIRED` as expected.
+- An SVG application icon was uploaded through the Infra API. A temporary technical smoke token was revoked; the post-smoke active token count was `0`.
+- A real Bitrix24 placement smoke is still blocked until an administrator completes OAuth and enables the required Marketplace subscription. See `docs/12-acceptance-report.md`.
