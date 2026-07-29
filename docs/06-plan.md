@@ -934,3 +934,15 @@
   frontend large-chunk warning remains. A snapshot that reaches 500 deals is
   deliberately marked `PARTIAL_AGGREGATION` with `truncatedBlocks: ['snapshot']`
   until pagination is implemented.
+
+## Phase 13: CRM Data Accuracy And Freshness (Planned)
+
+- Goal: diagnose and correct the selected-pipeline trend refresh and winning
+  total mismatch without changing the accepted average-ticket calculation.
+- Detailed plan: `docs/superpowers/plans/2026-07-29-phase-13-crm-data-accuracy.md`.
+
+## Phase 14: Light Dashboard UI And Readable Analytics (Planned)
+
+- Goal: provide a light sidebar-free dashboard, compact visual funnel, and
+  one smooth selectable trend while period and currency remain global filters.
+- Detailed plan: `docs/superpowers/plans/2026-07-29-phase-14-dashboard-ui.md`.
