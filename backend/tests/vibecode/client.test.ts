@@ -10,7 +10,7 @@ describe('VibeCode client', () => {
     const fetchImpl = vi.fn(async () => successResponse({ success: true, data: [] }))
     const client = createVibeCodeClient({
       apiBaseUrl: new URL('https://vibecode.example.com/v1/'),
-      appKey: 'vibe_app_secret',
+      apiKey: 'vibe_app_secret',
       fetchImpl
     })
 
@@ -34,7 +34,7 @@ describe('VibeCode client', () => {
     }))
     const client = createVibeCodeClient({
       apiBaseUrl: new URL('https://vibecode.example.com/v1/'),
-      appKey: 'vibe_app_secret',
+      apiKey: 'vibe_app_secret',
       fetchImpl
     })
 
@@ -47,10 +47,28 @@ describe('VibeCode client', () => {
     expect(new Headers(init.headers).get('authorization')).toBe('Bearer vibe_session_gateway')
   })
 
+  it('reads the portal from /v1/me without a bearer session', async () => {
+    const fetchImpl = vi.fn(async () => successResponse({
+      success: true,
+      data: { portal: 'portal.bitrix24.ru', currentUser: null }
+    }))
+    const client = createVibeCodeClient({
+      apiBaseUrl: new URL('https://vibecode.example.com/v1/'),
+      apiKey: 'vibe_api_owner_secret',
+      fetchImpl
+    })
+
+    await expect(client.getKeyPortal()).resolves.toEqual({ portal: 'portal.bitrix24.ru' })
+    const [url, init] = fetchImpl.mock.calls[0] as unknown as [URL, RequestInit]
+    expect(url.toString()).toBe('https://vibecode.example.com/v1/me')
+    expect(new Headers(init.headers).get('x-api-key')).toBe('vibe_api_owner_secret')
+    expect(new Headers(init.headers).get('authorization')).toBeNull()
+  })
+
   it('accepts only typed search and aggregate request bodies at compile time', () => {
     const client = createVibeCodeClient({
       apiBaseUrl: new URL('https://vibecode.example.com'),
-      appKey: 'vibe_app_secret',
+      apiKey: 'vibe_app_secret',
       fetchImpl: async () => successResponse({ success: true, data: [] })
     })
 
@@ -73,7 +91,7 @@ describe('VibeCode client', () => {
       .mockResolvedValueOnce(successResponse({ success: true, data: [] }))
     const client = createVibeCodeClient({
       apiBaseUrl: new URL('https://vibecode.example.com'),
-      appKey: 'vibe_app_secret',
+      apiKey: 'vibe_app_secret',
       fetchImpl: retryableFetch,
       retryDelayMs: 0
     })
@@ -87,7 +105,7 @@ describe('VibeCode client', () => {
     }, { status: 400 }))
     const nonRetryingClient = createVibeCodeClient({
       apiBaseUrl: new URL('https://vibecode.example.com'),
-      appKey: 'vibe_app_secret',
+      apiKey: 'vibe_app_secret',
       fetchImpl: nonRetryableFetch,
       retryDelayMs: 0
     })
@@ -115,7 +133,7 @@ describe('VibeCode client', () => {
     }))
     const client = createVibeCodeClient({
       apiBaseUrl: new URL('https://vibecode.example.com'),
-      appKey: 'vibe_app_secret',
+      apiKey: 'vibe_app_secret',
       fetchImpl
     })
 
@@ -132,7 +150,7 @@ describe('VibeCode client', () => {
       .mockResolvedValueOnce(successResponse({ success: true, data: [] }))
     const client = createVibeCodeClient({
       apiBaseUrl: new URL('https://vibecode.example.com'),
-      appKey: 'vibe_app_secret',
+      apiKey: 'vibe_app_secret',
       fetchImpl: eventuallySuccessfulFetch,
       retryDelayMs: 0
     })
@@ -145,7 +163,7 @@ describe('VibeCode client', () => {
     })
     const timingOutClient = createVibeCodeClient({
       apiBaseUrl: new URL('https://vibecode.example.com'),
-      appKey: 'vibe_app_secret',
+      apiKey: 'vibe_app_secret',
       fetchImpl: alwaysTimingOutFetch,
       retryDelayMs: 0
     })

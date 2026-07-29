@@ -7,7 +7,7 @@ import { resolveSessionContext } from '../../session/resolve.js'
 export const handleBootstrap = async (
   request: Request,
   referenceDataService: ReferenceDataService,
-  client: Pick<VibeCodeClient, 'getCurrentUser'>,
+  client: Pick<VibeCodeClient, 'getCurrentUser' | 'getKeyPortal'>,
   headers: Headers,
   sessionContextConfig: SessionContextConfig
 ): Promise<Response> => {
@@ -15,7 +15,7 @@ export const handleBootstrap = async (
 
   const bootstrap = await referenceDataService.getBootstrap({
     portalId: session.publicContext.portalDomain,
-    sessionToken: session.sessionToken,
+    ...(session.sessionToken ? { sessionToken: session.sessionToken } : {}),
     ...(session.publicContext.userId ? { userId: session.publicContext.userId } : {})
   })
 

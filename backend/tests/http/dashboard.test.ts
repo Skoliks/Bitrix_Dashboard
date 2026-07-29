@@ -215,6 +215,32 @@ describe('dashboard route', () => {
     expect(forged.status).toBe(401)
     expect(signed.status).toBe(200)
   })
+
+  it('loads dashboard through owner demo mode without browser credentials', async () => {
+    const referenceDataService = { getBootstrap: vi.fn(async () => bootstrap) }
+    const client = createClient({
+      getKeyPortal: vi.fn(async () => ({ portal: 'portal.bitrix24.com' }))
+    })
+    const app = createApp({
+      ...validEnv,
+      NODE_ENV: 'production',
+      VIBECODE_APP_KEY: undefined,
+      VIBECODE_API_KEY: 'vibe_api_owner_secret',
+      VIBECODE_API_BASE_URL: 'https://vibecode.bitrix24.tech',
+      SESSION_CONTEXT_MODE: 'owner-api-key',
+      OWNER_DEMO_PORTAL: 'portal.bitrix24.com'
+    }, { referenceDataService, vibeCodeClient: client })
+
+    const response = await app.fetch(new Request('http://localhost/api/dashboard', {
+      headers: { origin: 'https://portal.bitrix24.com' }
+    }))
+
+    expect(response.status).toBe(200)
+    expect(client.getKeyPortal).toHaveBeenCalledOnce()
+    expect(client.getCurrentUser).not.toHaveBeenCalled()
+    expect(client.aggregateDeals).toHaveBeenCalled()
+    expect(client.searchDeals).toHaveBeenCalled()
+  })
 })
 
 const aggregate = (count: number, groups = [] as Array<{ stageId?: string; count: number; aggregates: Record<string, unknown> }>, truncated = false) => ({
@@ -225,6 +251,7 @@ const aggregate = (count: number, groups = [] as Array<{ stageId?: string; count
 })
 
 const createClient = (overrides = {}) => ({
+  getKeyPortal: vi.fn(),
   getCurrentUser: vi.fn(),
   getDeals: vi.fn(),
   getDealCategories: vi.fn(),

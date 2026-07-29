@@ -15,7 +15,6 @@ export interface PublicConfig {
 }
 
 export interface AppConfig {
-  vibeCodeAppKey: string
   vibeCodeApiKey: string
   vibeCodeApiBaseUrl: URL
   sessionContext: {
@@ -71,7 +70,6 @@ export const loadConfig = (env: Env = process.env): ConfigResult => {
   return {
     isValid: true,
     errors: [],
-    vibeCodeAppKey: apiKey,
     vibeCodeApiKey: apiKey,
     vibeCodeApiBaseUrl: apiBaseUrl,
     sessionContext: {

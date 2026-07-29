@@ -120,6 +120,7 @@ const normalizePublicConfig = (config: ConfigResult): PublicConfig => ({
 const createDefaultVibeCodeClient = (config: ConfigResult): VibeCodeClient => {
   if (!config.isValid) {
     return {
+      async getKeyPortal() { throw getConfigValidationError(config) },
       async getCurrentUser() { throw getConfigValidationError(config) },
       async getDeals() { throw getConfigValidationError(config) },
       async searchDeals() { throw getConfigValidationError(config) },
@@ -133,7 +134,7 @@ const createDefaultVibeCodeClient = (config: ConfigResult): VibeCodeClient => {
 
   return createVibeCodeClient({
     apiBaseUrl: config.vibeCodeApiBaseUrl,
-    appKey: config.vibeCodeAppKey
+    apiKey: config.vibeCodeApiKey
   })
 }
 

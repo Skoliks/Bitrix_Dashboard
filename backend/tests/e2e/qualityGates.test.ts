@@ -95,6 +95,7 @@ describe('phase 9 backend quality gates', () => {
 })
 
 const createClient = () => ({
+  getKeyPortal: vi.fn(),
   getCurrentUser: vi.fn(),
   getDeals: vi.fn(),
   getDealCategories: vi.fn(),

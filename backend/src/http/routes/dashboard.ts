@@ -19,7 +19,7 @@ export const handleDashboard = async (
 
   const bootstrap = await referenceDataService.getBootstrap({
     portalId: session.publicContext.portalDomain,
-    sessionToken: session.sessionToken,
+    ...(session.sessionToken ? { sessionToken: session.sessionToken } : {}),
     ...(session.publicContext.userId ? { userId: session.publicContext.userId } : {})
   })
   const url = new URL(request.url)
@@ -46,7 +46,7 @@ export const handleDashboard = async (
     currency: filters.currency,
     range
   })
-  const requestContext = { sessionToken: session.sessionToken }
+  const requestContext = session.sessionToken ? { sessionToken: session.sessionToken } : {}
 
   const [openNow, openCreated, won, funnel, moneyKpiDeals, trendCreatedDeals, trendWonDeals, recentDeals] = await Promise.all([
     client.aggregateDeals({ ...requestContext, body: queries.openNow }),

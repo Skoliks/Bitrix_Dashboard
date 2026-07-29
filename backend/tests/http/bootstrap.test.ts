@@ -84,6 +84,31 @@ describe('bootstrap route', () => {
     })
   })
 
+  it('loads bootstrap through owner demo mode without browser credentials', async () => {
+    const referenceDataService = { getBootstrap: vi.fn(async () => bootstrap) }
+    const client = createClient({
+      getKeyPortal: vi.fn(async () => ({ portal: 'portal.bitrix24.com' }))
+    })
+    const app = createApp({
+      ...validEnv,
+      NODE_ENV: 'production',
+      VIBECODE_APP_KEY: undefined,
+      VIBECODE_API_KEY: 'vibe_api_owner_secret',
+      VIBECODE_API_BASE_URL: 'https://vibecode.bitrix24.tech',
+      SESSION_CONTEXT_MODE: 'owner-api-key',
+      OWNER_DEMO_PORTAL: 'portal.bitrix24.com'
+    }, { referenceDataService, vibeCodeClient: client })
+
+    const response = await app.fetch(new Request('http://localhost/api/bootstrap', {
+      headers: { origin: 'https://portal.bitrix24.com' }
+    }))
+
+    expect(response.status).toBe(200)
+    expect(client.getKeyPortal).toHaveBeenCalledOnce()
+    expect(client.getCurrentUser).not.toHaveBeenCalled()
+    expect(referenceDataService.getBootstrap).toHaveBeenCalledWith({ portalId: 'portal.bitrix24.com' })
+  })
+
   it('rejects forged provisional headers when signed mode is enabled', async () => {
     const referenceDataService = {
       getBootstrap: vi.fn(async () => bootstrap)
@@ -175,6 +200,7 @@ describe('bootstrap route', () => {
 })
 
 const createClient = (overrides = {}) => ({
+  getKeyPortal: vi.fn(),
   getCurrentUser: vi.fn(),
   getDeals: vi.fn(),
   searchDeals: vi.fn(),

@@ -23,7 +23,7 @@ type FetchImpl = (input: URL, init: RequestInit) => Promise<Response>
 
 interface VibeCodeClientConfig {
   apiBaseUrl: URL
-  appKey: string
+  apiKey: string
   fetchImpl?: FetchImpl
   timeoutMs?: number
   maxAttempts?: number
@@ -51,6 +51,7 @@ interface AggregateBodyParams extends RequestContext {
 }
 
 export interface VibeCodeClient {
+  getKeyPortal(): Promise<{ portal: string }>
   getCurrentUser(params: RequestContext): Promise<{ portal: string; userId: string }>
   getDeals(params?: GetDealsParams): Promise<Deal[]>
   searchDeals(params: BodyParams): Promise<Deal[]>
@@ -75,7 +76,7 @@ export const createVibeCodeClient = (config: VibeCodeClientConfig): VibeCodeClie
       try {
         const response = await fetchWithTimeout(fetchImpl, buildUrl(config.apiBaseUrl, path), {
           ...init,
-          headers: buildHeaders(config.appKey, context.sessionToken, init.headers)
+          headers: buildHeaders(config.apiKey, context.sessionToken, init.headers)
         }, timeoutMs)
         const body = await readJson(response)
 
@@ -104,6 +105,12 @@ export const createVibeCodeClient = (config: VibeCodeClientConfig): VibeCodeClie
   }
 
   return {
+    async getKeyPortal() {
+      const body = await request('/me', { method: 'GET' })
+      const response = parseUpstream(currentUserResponseSchema, body)
+      return { portal: response.data.portal }
+    },
+
     async getCurrentUser(params) {
       const body = await request('/me', { method: 'GET' }, params)
       const response = parseUpstream(currentUserResponseSchema, body)
@@ -176,10 +183,10 @@ const buildUrl = (baseUrl: URL, path: string): URL => {
   return new URL(path.replace(/^\//, ''), base)
 }
 
-const buildHeaders = (appKey: string, sessionToken: string | undefined, headers?: HeadersInit): Headers => {
+const buildHeaders = (apiKey: string, sessionToken: string | undefined, headers?: HeadersInit): Headers => {
   const result = new Headers(headers)
   result.set('accept', 'application/json')
-  result.set('x-api-key', appKey)
+  result.set('x-api-key', apiKey)
   if (sessionToken) {
     result.set('authorization', `Bearer ${sessionToken}`)
   }
