@@ -935,10 +935,30 @@
   deliberately marked `PARTIAL_AGGREGATION` with `truncatedBlocks: ['snapshot']`
   until pagination is implemented.
 
-## Phase 13: CRM Data Accuracy And Freshness (Planned)
+## Phase 13: CRM Data Accuracy And Freshness
 
-- Goal: diagnose and correct the selected-pipeline trend refresh and winning
-  total mismatch without changing the accepted average-ticket calculation.
+- Done: live production diagnostics confirmed correct CRM aggregation for
+  categories 2, 4, 6, and 8, including category 2's two successful deals
+  totaling `500000233` RUB. The outstanding stale-trend defect was isolated to
+  the Unovis rendering boundary and fixed with a deterministic trend render
+  key. Average-ticket calculation was not changed.
+- Changed files: `dashboard-app/src/components/dashboard/TrendChart.vue`,
+  `dashboard-app/src/components/dashboard/__tests__/TrendChart.test.ts`,
+  `dashboard-app/vitest.config.ts`,
+  `backend/tests/services/aggregationService.test.ts`,
+  `backend/tests/http/dashboard.test.ts`, `docs/12.1-owner-demo-report.md`,
+  and `docs/06-plan.md`.
+- Passed checks: 109 backend tests; backend typecheck, lint, production build,
+  and artifact check; 43 frontend tests; frontend typecheck, lint, and secret
+  scan. The 71-entry allowlisted archive had zero forbidden entries. Production
+  health, readiness, bootstrap, and dashboard smoke passed for categories 2,
+  4, 6, and 8; the temporary smoke token was revoked; a 20-line app-log scan
+  found zero request failures or credential-pattern matches.
+- Remaining risks: owner-demo mode remains single-owner and is not client
+  integration; the previously shared personal key still needs rotation; the
+  frontend large-chunk warning remains; 500-record snapshots intentionally
+  return `PARTIAL_AGGREGATION` until pagination exists; the final visual
+  pipeline-switch screenshot remains an owner acceptance action.
 - Detailed plan: `docs/superpowers/plans/2026-07-29-phase-13-crm-data-accuracy.md`.
 
 ## Phase 14: Light Dashboard UI And Readable Analytics (Planned)
