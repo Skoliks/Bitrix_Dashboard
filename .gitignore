@@ -7,3 +7,4 @@ backend/.env.*
 !backend/.env.example
 !backend/.env.development.example
 backend/*.log
+.worktrees/
