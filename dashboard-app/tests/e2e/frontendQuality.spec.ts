@@ -42,4 +42,9 @@ describe('phase 9 frontend quality gates', () => {
 
     expect(page).not.toMatch(/^await\s+/m)
   })
+
+  it('starts light and does not render an internal sidebar', () => {
+    expect(read('vite.config.ts')).toContain("colorModeInitialValue: 'light'")
+    expect(read('src/layouts/default.vue')).not.toContain('B24DashboardSidebar')
+  })
 })

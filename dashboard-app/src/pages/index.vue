@@ -2,6 +2,9 @@
 import { computed, onMounted, ref, watch } from 'vue'
 import { useI18n } from 'vue-i18n'
 import { useHead } from '@unhead/vue'
+import { useColorMode } from '@bitrix24/b24ui-nuxt/composables'
+import MoonIcon from '@bitrix24/b24icons-vue/outline/MoonIcon'
+import SunIcon from '@bitrix24/b24icons-vue/outline/SunIcon'
 import { useSalesDashboard } from '../composables/useSalesDashboard'
 import { useB24 } from '../composables/useB24'
 import type { DashboardFilterInput, DashboardFilters as DashboardFiltersModel } from '../types/dashboard'
@@ -15,12 +18,14 @@ import RecentDealsTable from '../components/dashboard/RecentDealsTable.vue'
 import StageFunnel from '../components/dashboard/StageFunnel.vue'
 import TrendChart from '../components/dashboard/TrendChart.vue'
 import { buildDashboardErrorState, describeFilters, type RecentDealRowView } from '../components/dashboard/dashboardViewModel'
+import { getDashboardThemeToggle } from '../components/dashboard/dashboardTheme'
 
 const { t } = useI18n()
 useHead({ title: t('page.index.seo.title') })
 
 const salesDashboard = useSalesDashboard()
 const b24Instance = useB24()
+const colorMode = useColorMode()
 
 const isUseB24 = computed(() => b24Instance.isInit())
 const dashboard = computed(() => salesDashboard.dashboard.value)
@@ -35,6 +40,9 @@ const subtitle = computed(() => dashboard.value
   : 'Основная воронка · Последние 30 дней · Все валюты'
 )
 const blockingError = computed(() => buildDashboardErrorState(salesDashboard.error.value))
+const themeToggle = computed(() => getDashboardThemeToggle(colorMode.preference))
+const themeIcon = computed(() => themeToggle.value.icon === 'sun' ? SunIcon : MoonIcon)
+const themeTooltip = computed(() => themeToggle.value.icon === 'sun' ? 'Включить светлую тему' : 'Включить темную тему')
 const hasDashboardData = computed(() => {
   const data = dashboard.value
   if (!data) {
@@ -56,6 +64,10 @@ watch(dashboard, value => {
 
 const refreshDashboard = async (filters: DashboardFilterInput = activeFilters.value) => {
   await salesDashboard.refresh(filters)
+}
+
+const toggleTheme = () => {
+  colorMode.preference = themeToggle.value.nextPreference
 }
 
 const openDeal = (deal: RecentDealRowView) => {
@@ -97,6 +109,16 @@ onMounted(() => {
           <div>
             <h1>Дашборд воронки продаж</h1>
             <p>{{ subtitle }}</p>
+          </div>
+          <div class="dashboard-page-actions">
+            <B24Tooltip :text="themeTooltip">
+              <B24Button
+                :icon="themeIcon"
+                color="air-tertiary"
+                :aria-label="themeTooltip"
+                @click="toggleTheme"
+              />
+            </B24Tooltip>
           </div>
         </div>
 
