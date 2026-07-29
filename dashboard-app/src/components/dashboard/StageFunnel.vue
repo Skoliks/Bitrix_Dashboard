@@ -13,7 +13,7 @@ const props = defineProps<{
 }>()
 
 const rows = computed(() => buildStageRows(props.stages, props.references.stages, props.references.currencies, props.categoryId, props.meta))
-const maxCount = computed(() => Math.max(1, ...rows.value.map(row => row.count)))
+const layerWidth = (index: number, total: number) => `${Math.max(60, 100 - (index * 40) / Math.max(1, total - 1))}%`
 </script>
 
 <template>
@@ -35,22 +35,21 @@ const maxCount = computed(() => Math.max(1, ...rows.value.map(row => row.count))
       description="Справочник стадий недоступен для выбранной воронки"
       compact
     />
-    <div v-else class="dashboard-funnel-list">
-      <div v-for="row in rows" :key="row.stageId" class="dashboard-funnel-row">
-        <div class="dashboard-funnel-meta">
-          <span class="dashboard-funnel-name" :title="row.name">{{ row.name }}</span>
-          <span class="dashboard-funnel-count">{{ row.count }}</span>
-        </div>
-        <div class="dashboard-funnel-track">
-          <div
-            class="dashboard-funnel-bar"
-            :style="{ width: `${Math.max(4, (row.count / maxCount) * 100)}%`, backgroundColor: row.color || 'var(--ui-color-accent-main-primary)' }"
-          />
-        </div>
-        <div v-if="row.money.length" class="dashboard-funnel-money">
+    <div v-else class="dashboard-funnel" aria-label="Воронка по стадиям">
+      <div
+        v-for="(row, index) in rows"
+        :key="row.stageId"
+        data-test="funnel-layer"
+        class="dashboard-funnel-layer"
+        :style="{ width: layerWidth(index, rows.length), backgroundColor: row.color || 'var(--ui-color-accent-main-primary)' }"
+        :aria-label="`${row.name}: ${row.count}`"
+      >
+        <span class="dashboard-funnel-name" :title="row.name">{{ row.name }}</span>
+        <span class="dashboard-funnel-count">{{ row.count }}</span>
+        <span v-if="row.money.length" class="dashboard-funnel-money">
           <span v-for="line in row.money" :key="line">{{ line }}</span>
-          <span v-if="row.moneyDescription" class="dashboard-muted">{{ row.moneyDescription }}</span>
-        </div>
+        </span>
+        <span v-if="row.moneyDescription" class="dashboard-funnel-description">{{ row.moneyDescription }}</span>
       </div>
     </div>
   </B24Card>
