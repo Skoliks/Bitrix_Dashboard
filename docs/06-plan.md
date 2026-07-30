@@ -1089,6 +1089,12 @@
   related frontend tests, and `dashboard-app/src/assets/css/main.css`.
 - Passed checks: backend lint, typecheck, tests, production build; frontend
   lint, typecheck, tests, and build; artifact, security, and license scans.
+- Deployment: commit `49a13ea` was deployed to the existing `OWNER_ONLY`
+  Black Hole server. VibeCode saved source snapshot `v15`; the deployment
+  preserved the server-side owner-demo environment. `/health`, `/ready`, root,
+  bootstrap, and dashboard requests for categories `2`, `4`, `6`, and `8`
+  returned `200`. Each dashboard response included the new open-deal money
+  array; the temporary technical access token was revoked after the smoke.
 - Remaining risks: pagination, Bitrix24 placement, and user-context
   integration are explicitly outside this phase. The owner still needs to make
   the final local browser check of the compact caption and its tooltip.
