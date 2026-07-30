@@ -1084,7 +1084,8 @@
 - Changed files: `backend/src/types/api.ts`,
   `backend/src/services/aggregationService.ts`, related backend tests,
   `dashboard-app/src/types/dashboard.ts`, dashboard mocks and contract tests,
-  `dashboard-app/src/components/dashboard/{dashboardFormatters,dashboardViewModel,KpiCards}.ts`,
+  `dashboard-app/src/components/dashboard/{dashboardFormatters,dashboardViewModel}.ts`,
+  `dashboard-app/src/components/dashboard/KpiCards.vue`,
   related frontend tests, and `dashboard-app/src/assets/css/main.css`.
 - Passed checks: backend lint, typecheck, tests, production build; frontend
   lint, typecheck, tests, and build; artifact, security, and license scans.
