@@ -1069,3 +1069,28 @@
   partial-aggregation limit remain.
 - Detailed design and plan: `docs/superpowers/specs/2026-07-30-trend-svg-fill-design.md`
   and `docs/superpowers/plans/2026-07-30-trend-svg-fill.md`.
+
+## Phase 15: Open Deals Amount (Completed 2026-07-30)
+
+- Done: `openNow` now returns both the open-deal `count` and
+  `amountsByCurrency`. It includes every open deal in the selected category,
+  regardless of the selected date range. Currencies remain separate; deals
+  without a currency are included in the count but excluded from money totals
+  and produce `INCOMPLETE_FINANCIAL_DATA`.
+- Done: the existing five-card KPI row is preserved. In «Открыто сейчас» the
+  count remains the primary value, while the former caption now shows a compact
+  currency-separated amount. Its full non-abbreviated values are available in
+  a tooltip; an empty amount set shows «Сумма не указана» rather than zero.
+- Changed files: `backend/src/types/api.ts`,
+  `backend/src/services/aggregationService.ts`, related backend tests,
+  `dashboard-app/src/types/dashboard.ts`, dashboard mocks and contract tests,
+  `dashboard-app/src/components/dashboard/{dashboardFormatters,dashboardViewModel,KpiCards}.ts`,
+  related frontend tests, and `dashboard-app/src/assets/css/main.css`.
+- Passed checks: backend lint, typecheck, tests, production build; frontend
+  lint, typecheck, tests, and build; artifact, security, and license scans.
+- Remaining risks: pagination, Bitrix24 placement, and user-context
+  integration are explicitly outside this phase. The owner still needs to make
+  the final local browser check of the compact caption and its tooltip.
+- Detailed design and plan:
+  `docs/superpowers/specs/2026-07-30-open-deals-amount-design.md` and
+  `docs/superpowers/plans/2026-07-30-phase-15-open-deals-amount.md`.
