@@ -43,7 +43,13 @@ const dashboard: DashboardResponse = {
     timeZone: bootstrap.timeZone
   },
   kpi: {
-    openNow: { count: 4 },
+    openNow: {
+      count: 4,
+      amountsByCurrency: [
+        { currency: 'RUB', amount: 120000 },
+        { currency: 'USD', amount: 900 }
+      ]
+    },
     openCreated: { count: 6 },
     won: { count: 2 },
     wonAmountByCurrency: [
@@ -89,6 +95,22 @@ describe('dashboard view model', () => {
     expect(cards[4]?.value).toBe('60 000 ₽')
     expect(cards[3]?.money).toEqual(['120 000 ₽', '$900'])
     expect(cards[4]?.money).toEqual(['60 000 ₽', '$450'])
+    expect(cards[0]).toMatchObject({
+      key: 'openNow',
+      value: '4',
+      description: '120 тыс. ₽ · $900',
+      descriptionTooltip: '120 000 ₽ · $900'
+    })
+  })
+
+  it('shows an explicit empty-money caption when open deals have no currency amounts', () => {
+    const cards = buildKpiCards({
+      ...dashboard.kpi,
+      openNow: { count: 2, amountsByCurrency: [] }
+    }, bootstrap.currencies, dashboard.meta)
+
+    expect(cards[0]).toMatchObject({ description: 'Сумма не указана' })
+    expect(cards[0]?.descriptionTooltip).toBeUndefined()
   })
 
   it('keeps zero-value trend periods available to the chart', () => {

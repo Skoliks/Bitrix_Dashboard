@@ -12,7 +12,7 @@ import {
   canApplyCustomPeriod,
   describePeriod
 } from './dashboardFiltersModel'
-import { firstMoneyOrZero, formatCount, formatDate, formatDateTime, formatMoney, formatMoneyList } from './dashboardFormatters'
+import { firstMoneyOrZero, formatCompactMoneyList, formatCount, formatDate, formatDateTime, formatMoney, formatMoneyList } from './dashboardFormatters'
 
 export {
   buildCategoryOptions,
@@ -21,6 +21,7 @@ export {
   buildPeriodOptions,
   canApplyCustomPeriod,
   formatCount,
+  formatCompactMoneyList,
   formatDate,
   formatDateTime,
   formatMoney,
@@ -37,6 +38,7 @@ export interface KpiCardView {
   title: string
   value: string
   description: string
+  descriptionTooltip?: string
   money?: string[]
 }
 
@@ -76,12 +78,17 @@ export const buildKpiCards = (
   kpi: DashboardResponse['kpi'],
   currencies: BootstrapResponse['currencies'],
   meta?: DashboardResponse['meta']
-): KpiCardView[] => [
+): KpiCardView[] => {
+  const openNowMoney = formatMoneyList(kpi.openNow.amountsByCurrency, currencies)
+  const openNowCompactMoney = formatCompactMoneyList(kpi.openNow.amountsByCurrency, currencies)
+
+  return [
   {
     key: 'openNow',
     title: 'Открыто сейчас',
     value: formatCount(kpi.openNow.count),
-    description: 'Сделки в работе на текущий момент'
+    description: openNowCompactMoney || 'Сумма не указана',
+    ...(openNowMoney.length ? { descriptionTooltip: openNowMoney.join(' · ') } : {})
   },
   {
     key: 'openCreated',
@@ -110,6 +117,7 @@ export const buildKpiCards = (
     money: formatMoneyList(kpi.averageWonAmountByCurrency, currencies)
   }
 ]
+}
 
 const isMoneyKpiPartial = (meta?: DashboardResponse['meta']): boolean =>
   meta?.truncatedBlocks.includes('moneyKpi') ?? false

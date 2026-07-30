@@ -131,6 +131,12 @@
     font-weight: 600;
   }
 
+  .dashboard-kpi-caption {
+    overflow: hidden;
+    text-overflow: ellipsis;
+    white-space: nowrap;
+  }
+
   .dashboard-analytics-grid {
     display: grid;
     grid-template-columns: minmax(250px, 1fr) minmax(0, 2fr);

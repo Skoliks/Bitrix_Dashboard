@@ -8,9 +8,19 @@ export const formatMoneyList = (
 export const formatMoney = (
   amount: MoneyAmount,
   currencies: BootstrapResponse['currencies']
+): string => formatMoneyValue(amount, currencies, formatAmount(amount.amount))
+
+export const formatCompactMoneyList = (
+  amounts: MoneyAmount[],
+  currencies: BootstrapResponse['currencies']
+): string => amounts.map(amount => formatMoneyValue(amount, currencies, formatCompactAmount(amount.amount))).join(' · ')
+
+const formatMoneyValue = (
+  amount: MoneyAmount,
+  currencies: BootstrapResponse['currencies'],
+  value: string
 ): string => {
   const currency = currencies.find(item => item.id === amount.currency)
-  const value = formatAmount(amount.amount)
   if (!currency) {
     return `${value} ${amount.currency}`
   }
@@ -46,6 +56,19 @@ export const firstMoneyOrZero = (
 const formatAmount = (value: number): string => {
   const rounded = Number.isInteger(value) ? value.toString() : value.toFixed(2)
   return rounded.replace(/\B(?=(\d{3})+(?!\d))/g, ' ')
+}
+
+const formatCompactAmount = (value: number): string => {
+  const units = [
+    { threshold: 1_000_000_000, label: 'млрд' },
+    { threshold: 1_000_000, label: 'млн' },
+    { threshold: 1_000, label: 'тыс.' }
+  ]
+  const unit = units.find(candidate => Math.abs(value) >= candidate.threshold)
+  if (!unit) return formatAmount(value)
+
+  const compactValue = Math.round((value / unit.threshold) * 10) / 10
+  return `${compactValue.toString().replace(/\.0$/, '')} ${unit.label}`
 }
 
 const decodeCurrencyFormat = (value: string): string => value.replace(

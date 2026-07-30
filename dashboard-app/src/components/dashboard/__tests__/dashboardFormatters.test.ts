@@ -1,7 +1,7 @@
 import { describe, expect, it } from 'vitest'
 
 import type { BootstrapResponse } from '../../../types/dashboard'
-import { formatMoney } from '../dashboardFormatters'
+import { formatCompactMoneyList, formatMoney } from '../dashboardFormatters'
 
 const currency = (formatString: string): BootstrapResponse['currencies'] => [{
   id: 'RUB',
@@ -24,5 +24,15 @@ describe('dashboard formatters', () => {
 
     expect(formatted).toBe('760 000 \u20bd')
     expect(formatted).not.toContain('&#')
+  })
+
+  it('formats money lists compactly without merging currencies', () => {
+    expect(formatCompactMoneyList([
+      { currency: 'RUB', amount: 30_000_000_000 },
+      { currency: 'USD', amount: 12_000 }
+    ], [
+      ...currency('# ₽'),
+      { ...currency('$#')[0], id: 'USD', formatString: '$#' }
+    ])).toBe('30 млрд ₽ · $12 тыс.')
   })
 })
