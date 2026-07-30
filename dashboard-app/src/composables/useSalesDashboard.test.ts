@@ -16,7 +16,7 @@ const bootstrap: BootstrapResponse = {
 const dashboard = (count: number, warnings: DashboardResponse['warnings'] = []): DashboardResponse => ({
   filters: { categoryId: 0, preset: 'last30', currency: 'all' },
   references: { categories: bootstrap.categories, stages: bootstrap.stages, currencies: bootstrap.currencies, users: [], timeZone: 'UTC' },
-  kpi: { openNow: { count }, openCreated: { count: 0 }, won: { count: 0 }, wonAmountByCurrency: [], averageWonAmountByCurrency: [] },
+  kpi: { openNow: { count, amountsByCurrency: [] }, openCreated: { count: 0 }, won: { count: 0 }, wonAmountByCurrency: [], averageWonAmountByCurrency: [] },
   stageFunnel: [],
   trend: { bucket: 'day', points: [] },
   recentDeals: [],

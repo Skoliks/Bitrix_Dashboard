@@ -27,7 +27,10 @@ export const mockDashboard: DashboardResponse = {
     timeZone: mockBootstrap.timeZone
   },
   kpi: {
-    openNow: { count: 12 },
+    openNow: {
+      count: 12,
+      amountsByCurrency: [{ currency: 'RUB', amount: 180000 }]
+    },
     openCreated: { count: 8 },
     won: { count: 5 },
     wonAmountByCurrency: [{ currency: 'RUB', amount: 250000 }],

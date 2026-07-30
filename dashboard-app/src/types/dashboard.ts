@@ -70,7 +70,10 @@ export interface DashboardResponse {
   filters: DashboardFilters
   references: Pick<BootstrapResponse, 'categories' | 'stages' | 'currencies' | 'users' | 'timeZone'>
   kpi: {
-    openNow: { count: number }
+    openNow: {
+      count: number
+      amountsByCurrency: MoneyAmount[]
+    }
     openCreated: { count: number }
     won: { count: number }
     wonAmountByCurrency: MoneyAmount[]

@@ -7,7 +7,7 @@ describe('dashboard api', () => {
     const fetchImpl = vi
       .fn()
       .mockResolvedValueOnce(Response.json({ categories: [], stages: [], currencies: [], users: [], timeZone: 'UTC', defaults: { categoryId: 0, currency: 'all', period: { from: '2026-07-01', to: '2026-07-31' } }, warnings: [] }))
-      .mockResolvedValueOnce(Response.json({ filters: { categoryId: 0, preset: 'last30', currency: 'all' }, references: { categories: [], stages: [], currencies: [], users: [], timeZone: 'UTC' }, kpi: { openNow: { count: 0 }, openCreated: { count: 0 }, won: { count: 0 }, wonAmountByCurrency: [], averageWonAmountByCurrency: [] }, stageFunnel: [], trend: { bucket: 'day', points: [] }, recentDeals: [], warnings: [], meta: { partialAggregation: false, truncatedBlocks: [], totalRecords: 0, recordsProcessed: 0 } }))
+      .mockResolvedValueOnce(Response.json({ filters: { categoryId: 0, preset: 'last30', currency: 'all' }, references: { categories: [], stages: [], currencies: [], users: [], timeZone: 'UTC' }, kpi: { openNow: { count: 0, amountsByCurrency: [] }, openCreated: { count: 0 }, won: { count: 0 }, wonAmountByCurrency: [], averageWonAmountByCurrency: [] }, stageFunnel: [], trend: { bucket: 'day', points: [] }, recentDeals: [], warnings: [], meta: { partialAggregation: false, truncatedBlocks: [], totalRecords: 0, recordsProcessed: 0 } }))
     const api = createDashboardApi({ fetchImpl })
 
     await api.getBootstrap()
