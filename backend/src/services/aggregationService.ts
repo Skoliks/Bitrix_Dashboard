@@ -42,6 +42,7 @@ export const buildDashboardResponse = (input: AggregationInput): DashboardRespon
   )
   const openDeals = input.deals.filter(deal => semanticFor(deal) === 'process')
   const openCreatedDeals = createdDeals.filter(deal => semanticFor(deal) === 'process')
+  const openMoney = collectMoney(openDeals, warnings)
   const wonMoney = collectMoney(wonDeals, warnings)
   const wonCountByCurrency = countByCurrency(wonDeals)
   const createdMoneyByStage = collectMoneyByStage(createdDeals, warnings)
@@ -50,7 +51,10 @@ export const buildDashboardResponse = (input: AggregationInput): DashboardRespon
     filters: input.filters,
     references: input.references,
     kpi: {
-      openNow: { count: openDeals.length },
+      openNow: {
+        count: openDeals.length,
+        amountsByCurrency: openMoney
+      },
       openCreated: { count: openCreatedDeals.length },
       won: { count: wonDeals.length },
       wonAmountByCurrency: wonMoney,

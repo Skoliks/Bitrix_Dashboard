@@ -43,14 +43,20 @@ describe('aggregation service', () => {
       deals: [
         deal({ id: 1, title: 'Last day', amount: 100, createdAt: '2026-07-31T23:59:59.999Z', closedAt: '2026-08-15T10:00:00.000Z' }),
         deal({ id: 2, title: 'Won', stageId: 'WON', stageSemanticId: 'S', amount: 300, createdAt: '2026-07-02T10:00:00.000Z', closedAt: '2026-07-31T23:59:59.999Z' }),
-        deal({ id: 3, title: 'Older open', createdAt: '2026-06-30T23:59:59.999Z' }),
+        deal({ id: 3, title: 'Older open', amount: 50, currency: 'USD', createdAt: '2026-06-30T23:59:59.999Z' }),
         deal({ id: 4, title: 'Lost', stageId: 'LOST', stageSemanticId: 'F', createdAt: '2026-07-03T10:00:00.000Z' })
       ],
       snapshotTruncated: false
     })
 
+    expect(response.kpi.openNow).toEqual({
+      count: 2,
+      amountsByCurrency: [
+        { currency: 'RUB', amount: 100 },
+        { currency: 'USD', amount: 50 }
+      ]
+    })
     expect(response.kpi).toMatchObject({
-      openNow: { count: 2 },
       openCreated: { count: 1 },
       won: { count: 1 },
       wonAmountByCurrency: [{ currency: 'RUB', amount: 300 }],
@@ -62,6 +68,23 @@ describe('aggregation service', () => {
     expect(response.recentDeals.map(row => row.id)).toEqual([1, 4, 2])
     expect(response.recentDeals[0]).toMatchObject({ assignedName: 'Manager One' })
     expect(response.trend.points).toContainEqual(expect.objectContaining({ period: '2026-07-27', createdCount: 1, wonCount: 1 }))
+  })
+
+  it('counts open deals with incomplete financial data outside the selected period', () => {
+    const response = buildDashboardResponse({
+      ...baseInput,
+      deals: [
+        deal({ id: 1, amount: 100, currency: null, createdAt: '2026-07-02T10:00:00.000Z' }),
+        deal({ id: 2, amount: 0, currency: 'RUB', createdAt: '2026-06-30T23:59:59.999Z' })
+      ],
+      snapshotTruncated: false
+    })
+
+    expect(response.kpi.openNow).toEqual({
+      count: 2,
+      amountsByCurrency: [{ currency: 'RUB', amount: 0 }]
+    })
+    expect(response.warnings).toContainEqual({ code: 'INCOMPLETE_FINANCIAL_DATA' })
   })
 
   it('does not count a process deal with a planned close date as won', () => {

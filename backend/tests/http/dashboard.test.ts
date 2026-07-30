@@ -52,7 +52,7 @@ const deal = (overrides: Partial<Deal> = {}): Deal => ({
 describe('dashboard route', () => {
   it('requests one unbounded-by-date deal snapshot for the selected filters', async () => {
     const client = createClient({
-      searchDeals: vi.fn(async () => [deal({ id: 72, stageId: 'NEW', stageSemanticId: 'P' })])
+      searchDeals: vi.fn(async () => [deal({ id: 72, amount: 125, stageId: 'NEW', stageSemanticId: 'P' })])
     })
     const app = createApp(validEnv, {
       referenceDataService: { getBootstrap: vi.fn(async () => bootstrap) },
@@ -64,6 +64,7 @@ describe('dashboard route', () => {
     }))
 
     expect(response.status).toBe(200)
+    expect((await response.clone().json()).kpi.openNow.amountsByCurrency).toEqual([{ currency: 'RUB', amount: 125 }])
     expect(client.aggregateDeals).not.toHaveBeenCalled()
     expect(client.searchDeals).toHaveBeenCalledWith(expect.objectContaining({
       body: expect.objectContaining({
@@ -96,7 +97,7 @@ describe('dashboard route', () => {
         currency: 'RUB'
       },
       kpi: {
-        openNow: { count: 0 },
+        openNow: { count: 0, amountsByCurrency: [] },
         openCreated: { count: 0 },
         won: { count: 1 }
       },
