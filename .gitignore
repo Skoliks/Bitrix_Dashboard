@@ -8,3 +8,17 @@ backend/.env.*
 !backend/.env.development.example
 backend/*.log
 .worktrees/
+
+# Local project materials not included in the client repository
+docs/
+screenshots/
+openspec/
+qa_reports/
+.codex/
+.agents/
+
+# Local artifacts
+coverage/
+*.log
+.DS_Store
+Thumbs.db
