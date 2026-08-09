@@ -1,11 +1,13 @@
 <script setup lang="ts">
 import { computed, onMounted, ref, watch } from 'vue'
+import { useRoute } from 'vue-router'
 import { useI18n } from 'vue-i18n'
 import { useHead } from '@unhead/vue'
 import { useColorMode } from '@bitrix24/b24ui-nuxt/composables'
 import MoonIcon from '@bitrix24/b24icons-vue/outline/MoonIcon'
 import SunIcon from '@bitrix24/b24icons-vue/outline/SunIcon'
-import { useSalesDashboard } from '../composables/useSalesDashboard'
+import { createSalesDashboardState } from '../composables/useSalesDashboard'
+import { createDashboardApi } from '../api/dashboardApi'
 import { useB24 } from '../composables/useB24'
 import type { DashboardFilterInput, DashboardFilters as DashboardFiltersModel } from '../types/dashboard'
 import DashboardEmptyState from '../components/dashboard/DashboardEmptyState.vue'
@@ -23,7 +25,11 @@ import { getDashboardThemeToggle } from '../components/dashboard/dashboardTheme'
 const { t } = useI18n()
 useHead({ title: t('page.index.seo.title') })
 
-const salesDashboard = useSalesDashboard()
+const route = useRoute()
+const isDemo = computed(() => route.path === '/demo')
+const salesDashboard = createSalesDashboardState(isDemo.value
+  ? createDashboardApi({ mockMode: true, productionMode: false })
+  : undefined)
 const b24Instance = useB24()
 const colorMode = useColorMode()
 
@@ -109,6 +115,9 @@ onMounted(() => {
           <div>
             <h1>Дашборд воронки продаж</h1>
             <p>{{ subtitle }}</p>
+            <p v-if="isDemo" class="dashboard-muted">
+              Демонстрационные данные
+            </p>
           </div>
           <div class="dashboard-page-actions">
             <B24Tooltip :text="themeTooltip">
